@@ -281,7 +281,7 @@ export function residencyLine(actor, entityId, transition) {
  *
  * @param {{actor?: string, verb?: string, ts?: number, seq?: number}[]} entries
  * @param {unknown} data raw residency bag
- * @returns {{key: string, id: string, wears: string, role?: string, mind: boolean,
+ * @returns {{id: string, wears: string, role?: string, mind: boolean,
  *            acts: number, verbs: Record<string, number>, first: number|null,
  *            last: number|null, lastSeq: number|null}[]}
  */
@@ -289,9 +289,9 @@ export function traceResidents(entries, data) {
   const r = normalizeResidency(data);
   if (!r.ok) return [];
   const roster = [
-    { key: r.residency.mind.id ?? r.residency.mind.name, id: r.residency.mind.id ?? r.residency.mind.name,
-      wears: r.residency.mind.wears, role: r.residency.mind.role, mind: true },
-    ...r.residency.agents.map((a) => ({ key: a.id, id: a.id, wears: a.wears, role: a.role, mind: false })),
+    { id: r.residency.mind.id ?? r.residency.mind.name, wears: r.residency.mind.wears,
+      role: r.residency.mind.role, mind: true },
+    ...r.residency.agents.map((a) => ({ id: a.id, wears: a.wears, role: a.role, mind: false })),
   ];
   const byWorn = new Map();
   const traces = roster.map((m) => {
@@ -373,7 +373,8 @@ export function residencyEntries(descriptor, { id = null, pos = [0, 0, 0], yaw =
   // Deterministic by default: re-planting the same instance's marker in the
   // same world re-authors the ONE entity rather than littering copies, which
   // is what makes this safe to run from a cron.
-  const eid = id ?? `residency-${res.instance.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase()}`;
+  const slug = res.instance.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
+  const eid = id ?? `residency-${slug || 'marker'}`;
   const marker = res.marker;
   const { entity: _e, marker: _m, ...record } = res;
   const entries = [];

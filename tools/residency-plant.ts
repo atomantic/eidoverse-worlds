@@ -40,9 +40,15 @@ const httpBase = URL_.replace(/^ws/, "http").replace(/\/ws$/, "");
 /** The read side: what this world says about everyone who lives in it — the
  *  claim and the log's own evidence for it, in prose. */
 async function report(): Promise<number> {
-  const res = await fetch(`${httpBase}/residency?world=${encodeURIComponent(WORLD)}`);
-  if (!res.ok) { console.error(`✗ ${httpBase}/residency?world=${WORLD} — ${res.status}`); return 1; }
-  const body = await res.json() as any;
+  const where = `${httpBase}/residency?world=${encodeURIComponent(WORLD)}`;
+  // A readout that throws must not take the run down with it — this runs from
+  // a socket callback, where an unhandled rejection is a dead process rather
+  // than a failed read.
+  const body = await fetch(where).then(async (res) => {
+    if (!res.ok) throw new Error(`${res.status}`);
+    return res.json() as Promise<any>;
+  }).catch((err) => { console.error(`✗ ${where} — ${err.message}`); return null; });
+  if (!body) return 1;
   if (!body.residencies?.length) { console.log(`\nnobody has recorded a residency in "${WORLD}"\n`); return 0; }
   const now = Date.now();
   for (const r of body.residencies) {
