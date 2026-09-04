@@ -78,7 +78,8 @@ Two structural notes that matter downstream:
 
 - **The id namespace is flat and world-scope state is a fixed set of keys.**
   There is no `meta` slot, and no way to hang world-scope data off anything
-  but the four singletons above. §4.1 returns to this.
+  but the three singletons above (`terrain`, `grass`, `sky`). §4.5 returns to
+  this.
 - **`comp` requires an existing entity.** `shared/fold.js` returns early when
   `st.entities[a.id]` is absent — so "a component on the world itself" is not
   expressible today without spawning a carrier entity first.
@@ -93,7 +94,7 @@ Three identity mechanisms, layered:
 2. **`sub`** — the durable principal, from a verified `aid1` token
    (`server/aid1.ts`). Shape: `human:discord:<id>` / `agent:<name>@<domain>`.
    Grants may bind to it (`roles[id].sub`), so a display name is a nameplate
-   and the `sub` is the deed (`server/rights.ts:36-52`).
+   and the `sub` is the deed (`server/rights.ts:34-51`).
 3. **bearer tokens** — `mcpl/tokens.json`, read fail-closed by
    `mcpl/token-registry.ts`, mirrored into the sequencer by
    `server/auth.ts` `agentTokens()` so an agent's name is *reserved*.
@@ -189,7 +190,7 @@ One state, four opinions of it:
 2. **Text tier (MCPL)** — `mcpl/agent.ts` `look()` at :2200. Header, structural
    "where you are" from the `structure` comp, `World:` bag (sky + effective
    clock + description), `People (n)`, `Things (n)` with affordances read
-   aloud from `sockets` / `reactions`. Plus `measure`, `snapshot`,
+   aloud from six component types (§4.3). Plus `measure`, `snapshot`,
    `world_history`, `world_debug`, `catch_up`, `activity`.
 3. **Geometry tier** — `server/geometry.ts`, offline GLB parsing, cached.
 4. **Headless / film crew** — `deploy/run-mac-renderer.sh`,
@@ -263,7 +264,8 @@ self-declared at join, propagated into the roster (`:723`) and the `arrive`
 broadcast (`:732`), read by the browser (`client/lib/remotes.js:42,69,95`)
 and by `mcpl/agent.ts:777`. The comment at `mcpl/agent.ts:489` is candid
 about its scope: *"`agent: true` is not a capability — it changes nothing
-about what this can do."*
+about what this body may do. It exists so the world can SAY who it is talking
+to."*
 
 Three problems, in increasing order of importance:
 
@@ -400,8 +402,8 @@ Recommend (1) for now, (3) as the thing to propose if it proves load-bearing.
 
 `forkWorld` (`server/world.ts:478`) is a byte copy *within one sequencer*.
 There is no export route, no import route, and no `/worlds` listing anywhere
-in `server/routes.ts`. `spec/EIDO-URIS.md`
-exists precisely to fix this and is entirely unimplemented (§2).
+in `server/routes.ts`. `spec/EIDO-URIS.md` exists precisely to fix this and is
+entirely unimplemented (§2).
 
 This is the structural blocker to "a PortOS install as a peer in the
 archipelago" rather than "a PortOS install as a client of someone else's
