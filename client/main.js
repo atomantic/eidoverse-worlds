@@ -1,3 +1,8 @@
+// FIRST, and side-effecting: an embedding host posts portos:connect on the
+// iframe's load event, which can land before core.js has a renderer. This
+// module imports nothing heavy so its receiver is installed by then; a
+// connect that still beats it is held until configuration resolves.
+import './lib/portosframe.js';
 import { initObjectLabels, tickObjectLabels } from './lib/objectlabels.js';
 // eidoverse-worlds browser client.
 //
