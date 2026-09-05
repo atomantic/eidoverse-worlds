@@ -8,8 +8,12 @@ import { isEditing, hasGhost } from './build.js';
 import { objectIdentity, readLabel, visibleLabels } from '../../shared/label.js';
 import * as models from './realize/models.js';
 import { registerEditor } from './inspect.js';
+import { frameRouteFor, onPortosLabelPreference, onPortosSession, openInPortos, portosSession } from './portosframe.js';
 
 let selected = null, preference = 'nearby', panel, list, details, overlay;
+// The preference is browser-local either way: the person changing it is
+// sometimes at the select and sometimes at the embedding host's control.
+const storePreference = () => { try { localStorage.setItem('ew-object-labels', preference); } catch {} };
 const anchors = new WeakMap();
 const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
 let picking = false;
@@ -42,6 +46,11 @@ function inspect(id, reveal=true) {
   const status=models.materializationStatus?.(id);
   if(status){const p=document.createElement('p');p.textContent=`Model: ${status.label}${status.error ? ' — '+status.error : ''}`;details.append(p);
     if(status.retryAvailable && models.retryMaterialization){const retry=document.createElement('button');retry.textContent='Retry loading';retry.onclick=()=>{models.retryMaterialization(id);inspect(id);};details.append(retry);}}
+  const route=frameRouteFor(r.entity);
+  if(route && portosSession()){
+    const open=document.createElement('button');open.textContent='Open in PortOS';
+    open.onclick=()=>openInPortos(id,route);details.append(open);
+  }
   if(reveal) panel.open = true;
 }
 export function initObjectLabels() {
@@ -59,7 +68,7 @@ export function initObjectLabels() {
   const summary = document.createElement('summary');summary.textContent='Inspect objects';panel.append(summary);
   const pref = document.createElement('select');pref.setAttribute('aria-label','Object labels');
   for (const [v,t] of [['nearby','Nearby'],['all','All nearby'],['off','Off']]) pref.add(new Option(t,v));
-  pref.value=preference;pref.onchange=()=>{preference=pref.value;try{localStorage.setItem('ew-object-labels',preference);}catch{}};
+  pref.value=preference;pref.onchange=()=>{preference=pref.value;storePreference();};
   list=document.createElement('select');list.setAttribute('aria-label','Choose object to inspect');list.style.width='100%';list.onchange=()=>inspect(list.value);
   const centered=document.createElement('button');centered.textContent='Inspect centered object';centered.onclick=()=>pick(innerWidth/2,innerHeight/2);
   details=document.createElement('div');details.setAttribute('aria-live','polite');details.style.overflowWrap='anywhere';
@@ -80,6 +89,11 @@ export function initObjectLabels() {
     const d=down;down=null;
     if(picking && d && d.id===e.pointerId && Math.hypot(d.x-e.clientX,d.y-e.clientY)<5 && performance.now()-d.t<400 && !document.pointerLockElement && !isEditing() && !hasGhost()) pick(e.clientX,e.clientY);
   });
+  // The host owns the preference while its session is live; `all-nearby`
+  // arrives already mapped onto our own `all`, so nothing stored changes.
+  onPortosLabelPreference(value=>{preference=value;pref.value=value;storePreference();});
+  // A handshake completing (or being retired) adds or removes the action.
+  onPortosSession(()=>{if(selected)inspect(selected,false);});
   bus.on('materialization',()=>{if(selected)inspect(selected,false);});
   bus.on('entity',({id})=>{if(id===selected)inspect(selected,false);});
   onWorldChange(refresh);refresh();

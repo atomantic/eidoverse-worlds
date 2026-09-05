@@ -200,3 +200,37 @@ The refactor survey program (docs/REFACTOR-SURVEY.md, all items closed):
 - Suites that pin source text were retargeted with the moves
   (whisper-disable, the two ws-switch suites). If you move these files
   again, those suites say so by name.
+
+## 6. Deliberate divergence — the PortOS frame bridge, NOT offered upstream
+
+`shared/portosframe.js`, `client/lib/portosframe.js`, `EMBED_PARENT_ORIGIN`,
+`GET /embed-config`, the `capabilities` field on `/version`, and the **Open in
+PortOS** action exist for ONE consumer: the PortOS install that embeds this
+client in an iframe. The wire vocabulary names it (`portos:connect`,
+`eidoverse:ready`, `eidoverse:navigate`), the navigable routes are sections of
+PortOS's own interface, and the entity metadata driving the action is the
+`comp.portos` component PortOS writes when it projects its world. Upstream has
+no such host, so this is carried here on purpose rather than proposed there.
+
+What that divergence deliberately does NOT change, so a merge stays cheap:
+
+- Label presentation is still generic. `shared/label.js`, the plaque pool and
+  the Inspect objects panel behave identically with no host attached; the host
+  preference is mapped onto the existing `nearby`/`all`/`off` values on
+  arrival, so no stored preference or world record learned a new shape.
+- The world log is untouched. The bridge issues no verb and claims no lease in
+  either direction, and the append-only history is not read across the frame.
+- The default posture is dormant. `EMBED_PARENT_ORIGIN` unset — every existing
+  deployment — leaves the receiver installed and answering nobody.
+
+**Port candidate, small and generic:** `launchBrowser({args})` in
+`tools/probe-harness.mjs` now appends probe-specific Chromium switches instead
+of hardcoding the microphone set. Any renderer probe wanting `--enable-unsafe-webgpu`
+needs it, and it is independent of everything above.
+
+**If upstream ever wants embedding of its own**, the reusable shape is the
+trusted-origin handshake, not the vocabulary: an operator-configured exact
+parent origin, a receiver installed before the renderer boots, a session nonce
+that a reload retires, and an outbound message that can name only an entity
+already in the scene plus a route the host itself re-checks. That generalizes;
+the PortOS names on top of it do not.

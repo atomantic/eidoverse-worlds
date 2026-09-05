@@ -6,6 +6,9 @@
 
 import { mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
+// The browser applies this same rule to the value it is handed back, so the
+// two ends cannot drift into disagreeing about what an origin is.
+import { readFrameOrigin } from "../shared/portosframe.js";
 
 export const PORT = Number(process.env.PORT ?? 8940);
 // Show-night door policy. Empty = open (dev on a tailnet). On a public box you
@@ -17,6 +20,22 @@ export const UPLOAD_CAP = Number(process.env.UPLOAD_CAP_MB ?? 20) * 1_000_000;
 // enough to re-render the whole performance offline, at production quality,
 // forever. Clients are told at join — recording is never invisible.
 export const RECORD = process.env.RECORD_FRAMES === "1";
+// The ONE origin allowed to drive the browser's frame bridge (docs/labels.md).
+// Empty = dormant: an arbitrary opener, a referrer or a query parameter is
+// never an authorization boundary, so without this there is nobody to trust.
+// GET /embed-config discloses it to whoever loads the client, which is the
+// embedding host by construction — leave it unset on a public sequencer.
+export const EMBED_PARENT_ORIGIN = (() => {
+  const raw = process.env.EMBED_PARENT_ORIGIN ?? "";
+  if (!raw) return "";
+  // An exact origin only. A value carrying a path, a query or even a trailing
+  // slash is refused rather than repaired: the browser compares with ===, so a
+  // repaired value would be a silent mismatch at handshake time.
+  const origin = readFrameOrigin(raw);
+  if (origin) return origin;
+  console.log(`  ⚠ EMBED_PARENT_ORIGIN is not an exact http(s) origin — the frame bridge stays OFF: ${raw}`);
+  return "";
+})();
 export const ROOT = resolve(import.meta.dir, "..");
 // Dev instances point this elsewhere so a scratch sequencer can't append to the
 // live worlds' logs (they are append-only and forever — a stray dev spawn is
