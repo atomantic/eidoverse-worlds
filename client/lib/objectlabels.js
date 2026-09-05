@@ -1,5 +1,7 @@
 // Read-only DOM plaques: no textures, leases or world writes in the viewer.
-import { THREE, camera, renderer, bus } from './core.js';
+import { THREE, camera, renderer } from './core.js';
+import { bus } from './base.js';
+import { raySegment } from './colliders.js';
 import { entities } from './world.js';
 import { state, onWorldChange } from './state.js';
 import { isEditing, hasGhost } from './build.js';
@@ -14,6 +16,8 @@ let picking = false;
 const plaques = [], point = new THREE.Vector3(), projected = new THREE.Vector3();
 let records = [], authoredRecords = [];
 const positioned = [];
+let occlusionCursor=0;
+const sightDirection=new THREE.Vector3();
 function refresh() {
   records = Object.values(state.st.entities).map(e => ({entity:e, ...objectIdentity(e,state.st.assets)}));
   authoredRecords = records.filter(r=>r.authored);
@@ -22,9 +26,9 @@ function refresh() {
     for (const r of records) list.add(new Option(`${r.name} [${r.id}]`, r.id));
     list.value = selected ?? '';
   }
-  if (selected) inspect(selected);
+  if (selected) inspect(selected,false);
 }
-function inspect(id) {
+function inspect(id, reveal=true) {
   selected = id;
   const r = records.find(r => r.id === id);
   if (!r) { selected = null; details?.replaceChildren(); return; }
@@ -38,7 +42,7 @@ function inspect(id) {
   const status=models.materializationStatus?.(id);
   if(status){const p=document.createElement('p');p.textContent=`Model: ${status.label}${status.error ? ' — '+status.error : ''}`;details.append(p);
     if(status.retryAvailable && models.retryMaterialization){const retry=document.createElement('button');retry.textContent='Retry loading';retry.onclick=()=>{models.retryMaterialization(id);inspect(id);};details.append(retry);}}
-  panel.open = true;
+  if(reveal) panel.open = true;
 }
 export function initObjectLabels() {
   if (panel) return;
@@ -76,7 +80,8 @@ export function initObjectLabels() {
     const d=down;down=null;
     if(picking && d && d.id===e.pointerId && Math.hypot(d.x-e.clientX,d.y-e.clientY)<5 && performance.now()-d.t<400 && !document.pointerLockElement && !isEditing() && !hasGhost()) pick(e.clientX,e.clientY);
   });
-  bus.on('materialization',()=>{if(selected)inspect(selected);});
+  bus.on('materialization',()=>{if(selected)inspect(selected,false);});
+  bus.on('entity',({id})=>{if(id===selected)inspect(selected,false);});
   onWorldChange(refresh);refresh();
 }
 function positions() {
@@ -95,6 +100,7 @@ function positions() {
     if(r.offset)point.fromArray(r.offset);else point.copy(anchor);obj.localToWorld(point);
     const distance=point.distanceTo(camera.position);
     projected.copy(point).project(camera);
+    r.wx=point.x;r.wy=point.y;r.wz=point.z;
     r.distance=distance;r.inView=projected.z>=-1 && projected.z<=1 && Math.abs(projected.x)<=1 && Math.abs(projected.y)<=1;
     r.x=rect.left+(projected.x+1)*rect.width/2;r.y=rect.top+(1-projected.y)*rect.height/2;positioned.push(r);
   }
@@ -118,7 +124,12 @@ let last=0;
 export function tickObjectLabels(now=performance.now()) {
   if(!panel || now-last<100) return; last=now;
   const visible=preference==='off' ? [] : visibleLabels(positions(),preference,selected);
-  plaques.forEach((el,i)=>{const r=visible[i];el.style.display=r?'block':'none';if(!r)return;
+  for(let n=0;n<Math.min(4,visible.length);n++){const r=visible[occlusionCursor++%visible.length];
+    sightDirection.set(r.wx,r.wy,r.wz).sub(camera.position);const distance=sightDirection.length();
+    r.occluded=distance>0 && raySegment(camera.position,sightDirection.normalize(),distance,r.id)!==null;
+  }
+  const clear=visible.filter(r=>!r.occluded);
+  plaques.forEach((el,i)=>{const r=clear[i];el.style.display=r?'block':'none';if(!r)return;
     if(el.textContent!==r.name)el.textContent=r.name;
     el.style.left=`${r.x}px`;el.style.top=`${r.y}px`;
   });

@@ -1,24 +1,23 @@
 // Disposable sequencer + actual browser client; no lived-in world is touched.
 import {chromium} from 'playwright';
-import {mkdtempSync,rmSync} from 'node:fs';
-import {tmpdir} from 'node:os';
+import {ownedWorld} from './probe-harness.mjs';
 import {strict as a} from 'node:assert';
-const dir=mkdtempSync(`${tmpdir()}/eido-label-world-`),port=18973;
-const server=Bun.spawn([process.execPath,'server/server.ts'],{env:{...process.env,PORT:String(port),JOIN_TOKEN:'label-test',WORLDS_DIR:dir},stdout:'ignore',stderr:'ignore'});
+const world=await ownedWorld({key:'label-test'});
 let browser;
 try{
- for(let i=0;i<100;i++){try{if((await fetch(`http://localhost:${port}/version`)).ok)break;}catch{}await Bun.sleep(100);}
  browser=await chromium.launch({executablePath:process.env.CHROME??'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true,args:['--enable-unsafe-webgpu']});
  const page=await browser.newPage({viewport:{width:390,height:844}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto(`http://localhost:${port}/?spectate&key=label-test&world=labels`);
- await page.getByText('Inspect objects',{exact:true}).waitFor({timeout:60000});
+ // Hold synthetic geometry requests pending: identity must work before hydration.
+ await page.route('**/library/missing.glb*',()=>new Promise(()=>{}));
+ await page.goto(`${world.origin}/?spectate&key=label-test&world=labels`);
+ try{await page.getByText('Inspect objects',{exact:true}).waitFor({timeout:60000});}catch(e){console.error(errors);throw e;}
  await page.evaluate(async()=>{
   const [{state,hydrate},{entities},{THREE,camera,scene},{tickObjectLabels}]=await Promise.all([import('/lib/state.js'),import('/lib/world.js'),import('/lib/core.js'),import('/lib/objectlabels.js')]);
   camera.position.set(0,2,8);camera.lookAt(0,1,0);camera.updateMatrixWorld();
   const snapshot=structuredClone(state.st);snapshot.entities={};
   for(let i=0;i<100;i++){
-   const id=`test-${i}`;snapshot.entities[id]={id,kind:'light',pos:[0,0,0],color:'#ffffff',intensity:0,comp:i?{label:{name:i===1?'<img onerror=alert(1)> Library':'Plaque '+i,visibility:'always'}}:{}};
+   const id=`test-${i}`;snapshot.entities[id]={id,lib:'missing.glb',pos:[0,0,0],comp:i?{label:{name:i===1?'<img onerror=alert(1)> Library':'Plaque '+i,visibility:'always'}}:{}};
   }
   hydrate(snapshot);
   for(let i=0;i<100;i++){
@@ -43,6 +42,18 @@ try{
   return {ms:performance.now()-start,pool:spans.length,visible:spans.filter(el=>el.style.display!=='none').length,overflow:document.documentElement.scrollWidth>innerWidth};
  });
  a.equal(result.pool,32);a.equal(result.visible,32);a.equal(result.overflow,false);
+ const occlusion=await page.evaluate(async()=>{
+  const {THREE,camera}=await import('/lib/core.js');const {fitCollider,removeCollider,raySegment,colliders}=await import('/lib/colliders.js');
+  const wall=new THREE.Mesh(new THREE.BoxGeometry(20,20,0.5),new THREE.MeshBasicMaterial());wall.position.set(0,1,4);wall.updateMatrixWorld();fitCollider('test-wall',wall);
+  const dir=new THREE.Vector3(0,0,-1);
+  const blocked=raySegment(camera.position,dir,8)!==null;
+  const selfClear=raySegment(camera.position,dir,8,'test-wall')===null;
+  colliders.get('test-wall').structOwner='owner';
+  const structureClear=raySegment(camera.position,dir,8,'owner')===null;
+  removeCollider('test-wall');return {blocked,selfClear,structureClear};
+ });
+ a.deepEqual(occlusion,{blocked:true,selfClear:true,structureClear:true});
+
  await page.screenshot({path:'/tmp/eido-label-narrow.png'});
  // Read-only controls must never send a logged verb or claim a lease.
  const sent=await page.evaluate(async()=>{
@@ -62,4 +73,4 @@ try{
  });
  console.log(JSON.stringify({result,offMs,errors},null,2));
  a.equal(errors.length,0);
-}finally{await browser?.close();server.kill();await server.exited;rmSync(dir,{recursive:true,force:true});}
+}finally{await browser?.close();await world.close();}

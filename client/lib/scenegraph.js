@@ -110,7 +110,7 @@ function paintScene(force = false) {
   const rows = [];
   const row = (id, depth) => {
     const meta = entityMeta.get(id) ?? state.st.entities[id];
-    const short = objectIdentity({ id, ...meta, comp: comps.get(id) }, state.st.assets).name;
+    const short = objectIdentity({ id, ...meta, comp: comps.get(id) ?? meta?.comp }, state.st.assets).name;
     const status = materializationStatus(id);
     const badges = [...badgesFor(id), status?.label ?? ''];
     const scripts = behaviorRows.filter((b) => b.attach === id).map((b) => `📜${b.id}`);
