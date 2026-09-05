@@ -37,7 +37,10 @@ export function onPortosLabelPreference(fn) {
 }
 
 /** Session came up or went away — the affordances it gates redraw on this. */
-export function onPortosSession(fn) { sessionSinks.add(fn); }
+export function onPortosSession(fn) {
+  sessionSinks.add(fn);
+  if (nonce !== null) fn(true);
+}
 
 /** The one outbound message, and only from an explicit user action. Returns
  *  false when anything about the session or the route fails to check out. */
@@ -90,6 +93,9 @@ function receive(event) {
 }
 
 function settle(value) {
+  // Idempotent on purpose: a second answer must never retract the first, and
+  // the bridge must not be disarmed by anything that throws downstream of it.
+  if (configured) return;
   origin = readFrameOrigin(value);
   configured = true;
   const queued = held.splice(0, held.length);
@@ -100,5 +106,11 @@ if (host) {
   window.addEventListener('message', receive);
   // GET /embed-config is the trusted embedding configuration; the operator
   // sets it, and an unset one leaves the bridge permanently dormant.
-  fetch('/embed-config').then((r) => r.json()).then((c) => settle(c?.parentOrigin)).catch(() => settle(null));
+  // The rejection handler sits BEFORE settle, so a failed fetch, a non-200
+  // answer or unparseable JSON all resolve to "no embedder" while an exception
+  // raised by a subscriber during the replay is left to surface as itself.
+  fetch('/embed-config')
+    .then((r) => (r.ok ? r.json() : null))
+    .then((c) => c?.parentOrigin ?? null, () => null)
+    .then(settle);
 }
