@@ -25,11 +25,14 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 /** SFU_TEST_CHROME override ▸ managed browser. `mic: true` adds the fake-media
- *  flags a microphone probe needs (and its contexts get mic permission). */
-export async function launchBrowser({ mic = false } = {}) {
+ *  flags a microphone probe needs (and its contexts get mic permission);
+ *  `args` appends probe-specific switches (the renderer probes want WebGPU).
+ *  The browser object comes back too, for a probe that needs its own context
+ *  options — a narrow touch viewport, say. */
+export async function launchBrowser({ mic = false, args: extra = [] } = {}) {
   const exe = process.env.SFU_TEST_CHROME;
-  const args = mic ? ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream',
-    '--autoplay-policy=no-user-gesture-required'] : [];
+  const args = [...(mic ? ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream',
+    '--autoplay-policy=no-user-gesture-required'] : []), ...extra];
   const b = await chromium.launch({ ...(exe ? { executablePath: exe } : {}), args });
   const page = async () => {
     const ctx = await b.newContext(mic ? { permissions: ['microphone'] } : {});

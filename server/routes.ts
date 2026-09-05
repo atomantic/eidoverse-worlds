@@ -13,9 +13,12 @@ import { existsSync, readFileSync, writeFileSync, renameSync, readdirSync, mkdir
 import { sfuDiag } from "./sfuadapter.ts";
 import { join, normalize } from "node:path";
 import { randomBytes } from "node:crypto";
-import { ROOT, WORLDS_DIR, LIBRARY_DIR, OPT_DIR, PATCH_DIR, LADDER, JOIN_TOKEN } from "./config.ts";
+import { ROOT, WORLDS_DIR, LIBRARY_DIR, OPT_DIR, PATCH_DIR, LADDER, JOIN_TOKEN, EMBED_PARENT_ORIGIN } from "./config.ts";
 import { isStoreOriginal, isServingArtifact } from "./store-variants.ts";
 import { wantsKtx2, KTX2_KEY } from "../shared/ktx2.js";
+// One table for what this build implements, shared with the browser bridge
+// that has to make the same claim at handshake (shared/portosframe.js).
+import { FRAME_CAPABILITIES } from "../shared/portosframe.js";
 import { LOD_RECIPE, lodVariantPath } from "./store-variants.ts";
 import { hnSessions, hnJti, sessionFromCookie, saveSessions, SESSION_TTL_MS, HN_ISSUER_KEY, HN_ISS, HN_AUD, HN_LOGIN_URL, HN_REQUIRE_LOGIN } from "./auth.ts";
 import { verifyToken } from "./aid1.ts";
@@ -626,8 +629,26 @@ const ROUTES: Route[] = [
         ...BUILD,
         ktx2Key: KTX2_KEY,
         lodRecipe: LOD_RECIPE,
+        // Independently versioned renderer capabilities (docs/labels.md). A
+        // host may adopt one leg without the others; the frame handshake, not
+        // this report, is what proves a loaded browser bundle speaks them —
+        // a stale bundle against a fresh server would say yes here and fail
+        // there, which is the right way round.
+        capabilities: FRAME_CAPABILITIES,
         ...(process.env.WORLD_INSTANCE_NONCE ? { instance: process.env.WORLD_INSTANCE_NONCE } : {}),
       }),
+      { headers: { "content-type": "application/json", "cache-control": "no-store" } }),
+  },
+  {
+    // Trusted embedding configuration for the browser's frame bridge: the ONE
+    // parent origin whose postMessage the client will answer. The browser
+    // cannot decide this for itself — a referrer, an opener and a query
+    // parameter are all things a page can claim about itself — so the
+    // operator states it here and the client compares with ===.
+    // Null means no embedder is configured and the bridge stays dormant.
+    match: (u) => u.pathname === "/embed-config",
+    handler: () => new Response(
+      JSON.stringify({ parentOrigin: EMBED_PARENT_ORIGIN || null }),
       { headers: { "content-type": "application/json", "cache-control": "no-store" } }),
   },
   {
