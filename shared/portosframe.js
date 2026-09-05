@@ -17,7 +17,11 @@ const PREFERENCES = { nearby: 'nearby', 'all-nearby': 'all', off: 'off' };
 // at most three segments, and nothing else. A URL, a query, a fragment, a
 // percent-escape, a dot segment and any path built from an authored name all
 // fail this, so component data can never widen navigation into a redirect.
-const ROUTE = /^\/[a-z0-9]+(?:\/[a-z0-9-]+){0,2}$/;
+// Every segment reads the same — alphanumeric runs joined by single hyphens —
+// so a hyphenated top-level section is as legal as a hyphenated nested one,
+// while a segment of nothing but punctuation is legal nowhere.
+const SEGMENT = '[a-z0-9]+(?:-[a-z0-9]+)*';
+const ROUTE = new RegExp('^/' + SEGMENT + '(?:/' + SEGMENT + '){0,2}$');
 
 /** The renderer-local preference a host value names, or null if unrecognized. */
 export function readFramePreference(value) {
@@ -50,9 +54,9 @@ export function frameRouteFor(entity) {
 
 /** Window, origin and version together — the authorization boundary. A sender
  *  that is merely first, merely referred or merely asking is none of these. */
-export function acceptsFrameMessage(event, { source, origin }) {
+export function acceptsFrameMessage(event, { source, origin } = {}) {
   const data = event?.data;
-  return Boolean(source && origin && event.source === source && event.origin === origin
+  return Boolean(source && origin && event?.source === source && event?.origin === origin
     && data && typeof data === 'object' && !Array.isArray(data)
     && data.version === FRAME_VERSION);
 }

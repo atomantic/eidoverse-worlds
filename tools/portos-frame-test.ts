@@ -21,10 +21,14 @@ for (const bad of ['inspect','', 'ALL-NEARBY',null,undefined,1,{},['nearby'],'co
 
 // Routes name a section of the host's interface. Everything that could carry a
 // destination of its own — a URL, a query, an escape, a traversal — is refused.
-for (const ok of ['/apps','/eidoverse','/cos/agents','/goals/list','/settings/features','/brain/memory','/a/b/c'])
+for (const ok of ['/apps','/eidoverse','/cos/agents','/goals/list','/settings/features','/brain/memory','/a/b/c',
+  // A hyphen reads the same in the first segment as in any later one.
+  '/api-keys','/cos/voice-controls','/a-b/c-d/e-f'])
   a.equal(readFrameRoute(ok),ok,`route ${ok}`);
 for (const bad of ['https://evil.example/apps','//evil.example/apps','/apps?x=1','/apps#x','/apps/','apps',
-  '/','/../secret','/a/b/c/d','/Apps','/apps%2Fx','/apps x','/'+'a'.repeat(80),'',null,undefined,42,{route:'/apps'}])
+  '/','/../secret','/a/b/c/d','/Apps','/apps%2Fx','/apps x','/'+'a'.repeat(80),'',null,undefined,42,{route:'/apps'},
+  // A hyphen JOINS runs; it never stands in for one.
+  '/-','/-apps','/apps-','/a--b','/cos/-','/cos/a--b'])
   a.equal(readFrameRoute(bad as never),null,`route ${JSON.stringify(bad)}`);
 
 // An entity carries its route in the host's own component; anything else there

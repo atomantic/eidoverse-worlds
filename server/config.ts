@@ -6,6 +6,9 @@
 
 import { mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
+// The browser applies this same rule to the value it is handed back, so the
+// two ends cannot drift into disagreeing about what an origin is.
+import { readFrameOrigin } from "../shared/portosframe.js";
 
 export const PORT = Number(process.env.PORT ?? 8940);
 // Show-night door policy. Empty = open (dev on a tailnet). On a public box you
@@ -25,13 +28,11 @@ export const RECORD = process.env.RECORD_FRAMES === "1";
 export const EMBED_PARENT_ORIGIN = (() => {
   const raw = process.env.EMBED_PARENT_ORIGIN ?? "";
   if (!raw) return "";
-  try {
-    const u = new URL(raw);
-    // An exact origin only. A value carrying a path, a query or even a
-    // trailing slash is refused rather than repaired: the browser compares
-    // with ===, so a repaired value would be a silent mismatch at handshake.
-    if ((u.protocol === "http:" || u.protocol === "https:") && u.origin === raw) return raw;
-  } catch { /* not a URL at all */ }
+  // An exact origin only. A value carrying a path, a query or even a trailing
+  // slash is refused rather than repaired: the browser compares with ===, so a
+  // repaired value would be a silent mismatch at handshake time.
+  const origin = readFrameOrigin(raw);
+  if (origin) return origin;
   console.log(`  ⚠ EMBED_PARENT_ORIGIN is not an exact http(s) origin — the frame bridge stays OFF: ${raw}`);
   return "";
 })();

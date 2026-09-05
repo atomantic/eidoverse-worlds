@@ -295,8 +295,11 @@ try {
   await panel().waitFor({timeout: 60000});
   await send({type: 'portos:label-preference', version: 1, nonce: 'session-one', labelVisibility: 'all-nearby'});
   await sleep(600);
+  // Exactly 'off': the reload restored the browser-local preference the host
+  // last set, so anything else would mean the retired nonce still moved it —
+  // or that the panel never came back, which `!== 'all'` would also excuse.
   check('the reloaded renderer ignores the retired session\'s nonce',
-    await preference() !== 'all', await preference());
+    await preference() === 'off', await preference());
   await page.evaluate(() => window.post({
     type: 'portos:connect', version: 1, nonce: 'session-two',
     capabilities: {portosNavigation: 1, labelPreferences: 1}, labelVisibility: 'all-nearby',
