@@ -38,6 +38,7 @@ const params = new URLSearchParams(globalThis.location?.search ?? '');
 const store = globalThis.localStorage ?? null;
 export const CONFIG = {
   params,
+  guest: params.get('guest') === '1',
   // Local rendering only; worlds do not opt visitors into overlays.
   objectLabels: ['nearby', 'all'].includes(params.get('objectLabels')) ? params.get('objectLabels') : 'off',
   world: params.get('world') || 'commons',
@@ -50,7 +51,7 @@ export const CONFIG = {
     `guest-${Math.random().toString(36).slice(2, 6)}`,
 };
 if (params.get('key')) store?.setItem('ew-key', CONFIG.token);
-store?.setItem('ew-name', CONFIG.name);
+if (!CONFIG.guest) store?.setItem('ew-name', CONFIG.name);
 
 /** Rename in place (the front-door panel calls this before connecting). */
 export function setName(name) {

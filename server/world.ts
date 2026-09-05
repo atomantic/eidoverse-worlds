@@ -60,6 +60,7 @@ export type Client = {
   avatar: string;      // VRM library path chosen at join
   spectator: boolean;  // retina/observer connections: receive everything, appear as nothing
   agent?: boolean;     // self-declared: an MCPL body, not a person at a keyboard
+  guestAfterSeq?: number; // explicit visitor entry: chat begins at this admission
   auth?: HnSession;    // archipelago-home session bound at WS upgrade (verified human)
   sub?: string;        // durable principal id when authenticated (`human:discord:…`)
   superseded?: boolean; // kicked by identity takeover — don't let its stale pose overwrite the successor's

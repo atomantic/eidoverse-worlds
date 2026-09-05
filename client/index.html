@@ -500,7 +500,7 @@ body.touch #touch { display: block; }
 (() => {
   try {
     const params = new URLSearchParams(location.search);
-    if (params.get('earlysock') === '0') return;
+    if (params.get('earlysock') === '0' || params.get('guest') === '1') return;
     if (params.has('spectate') || params.has('renderer') || params.has('mintthumbs')) return;
     const name = params.get('name')
       || (localStorage.getItem('ew-name-set') === '1' ? localStorage.getItem('ew-name') : null);

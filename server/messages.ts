@@ -91,13 +91,17 @@ export const MESSAGES: Record<string, (ctx: MsgCtx, msg: any) => void> = {
     if (!c.world) return;
     const r = c.world.readHistory({
       before: typeof msg.before === "number" ? msg.before : Infinity,
-      after: typeof msg.after === "number" ? msg.after : -Infinity,
+      after: Math.max(c.guestAfterSeq ?? -Infinity, typeof msg.after === "number" ? msg.after : -Infinity),
       limit: Math.min(LIMITS.PAGE_MAX, Math.max(1, Number(msg.limit ?? LIMITS.PAGE_DEFAULT))),
       verbs: Array.isArray(msg.verbs) && msg.verbs.length ? new Set(msg.verbs.map(String)) : null,
     });
     ws.send(JSON.stringify({ type: "history", reqId: msg.reqId ?? null, ...r }));
   },
   "debug": ({ c, ws, now, expel }, msg) => {
+    if (c.guestAfterSeq !== undefined) {
+      ws.send(JSON.stringify({ type: 'error', error: 'debug history is unavailable during guest visits' }));
+      return;
+    }
     // The flight recorder (World.debugLog): why things bounced —
     // denials, rejections, rate limits, reaction outcomes. Open to
     // spectators for the same reason history is: the log is public,
