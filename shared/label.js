@@ -1,5 +1,5 @@
 // Semantic interpretation only: the generic component fold remains blind.
-const text = (v, max) => typeof v === 'string' ? [...v.trim().replace(/[\u0000-\u001f\u007f]/g, ' ')].slice(0, max).join('') : '';
+const text = (v, max) => typeof v === 'string' ? [...v.replace(/[\u0000-\u001f\u007f]/g, ' ').trim()].slice(0, max).join('') : '';
 export function readLabel(value) {
   const v = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
   return { name: text(v.name, 120), description: text(v.description, 2000),
