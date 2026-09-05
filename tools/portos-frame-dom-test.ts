@@ -66,6 +66,11 @@ send({ ...hello, nonce: 'two' }); tickObjectLabels(1300);
 send(pref); tickObjectLabels(1400); assert.equal(visible().length, 1, 'replaced nonce cannot change the new session');
 open()!.click(); assert.equal(sent.at(-1)!.data.nonce, 'two');
 assert.equal(JSON.stringify(state.st), unchanged, 'inspection and frame preferences never mutate folded state');
+foldLive(entry('comp', { id: 'landmark', type: 'portos', data: { route: '/eidoverse', action: 'visit' } }));
+const teleport = [...document.querySelectorAll<HTMLButtonElement>('.ew-object-detail button')].find(button => button.textContent === 'Teleport as guest');
+assert(teleport, 'a visitor chamber names the action it performs');
+teleport.click();
+assert.deepEqual(sent.at(-1)!.data, { type: 'eidoverse:navigate', version: 1, nonce: 'two', entityId: 'landmark', route: '/eidoverse' });
 for (const route of ['https://other.example/', '/goals/list?query=1', '/goals/../apps']) {
   foldLive(entry('comp', { id: 'landmark', type: 'portos', data: { route } }));
   assert.equal(open(), undefined, 'malformed routes never offer navigation');
