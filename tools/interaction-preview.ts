@@ -9,8 +9,9 @@ const scratch = await mkdtemp(join(tmpdir(), 'eidoverse-interaction-'));
 const rendererOrigin = 'http://127.0.0.1:8993';
 const parentOrigin = 'http://127.0.0.1:8994';
 const key = 'synthetic-interaction-test';
+const instance = crypto.randomUUID();
 const child = Bun.spawn([process.execPath, 'server/server.ts'], {
-  cwd: root, env: { ...process.env, PORT: '8993', WORLDS_DIR: scratch, JOIN_TOKEN: key,
+  cwd: root, env: { ...process.env, PORT: '8993', WORLDS_DIR: scratch, JOIN_TOKEN: key, WORLD_INSTANCE_NONCE: instance,
     EIDOVERSE_DIR: resolve(root, '../../anima-research/eidoverse-video'), EMBED_PARENT_ORIGIN: parentOrigin },
   stdout: 'ignore', stderr: 'inherit',
 });
@@ -18,7 +19,8 @@ process.on('exit', () => child.kill());
 process.on('SIGINT', () => process.exit(0));
 let healthy = false;
 for (let attempt = 0; attempt < 100; attempt++) {
-  healthy = await fetch(`${rendererOrigin}/version`).then(r => r.ok).catch(() => false);
+  if (child.exitCode !== null) throw new Error('Scratch renderer exited before becoming ready');
+  healthy = await fetch(`${rendererOrigin}/version`).then(async r => r.ok && (await r.json()).instance === instance).catch(() => false);
   if (healthy) break;
   await Bun.sleep(100);
 }
