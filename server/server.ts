@@ -10,7 +10,7 @@ import { join } from "node:path";
 // config FIRST — it carries the WORLDS_DIR mkdir, and auth.ts/moderation.ts
 // carry their restore-at-boot blocks, so this import order IS the unsplit
 // file's boot order: mkdir → session restore → ban restore (§15, step 7a).
-import { PORT, JOIN_TOKEN, RECORD, ROOT, WORLDS_DIR, LIBRARY_DIR, MSG_RATE, FRAME_MS, FRAME_SKIP_BUFFERED } from "./config.ts";
+import { PORT, JOIN_TOKEN, RECORD, ROOT, WORLDS_DIR, LIBRARY_DIR, MSG_RATE, FRAME_MS, FRAME_SKIP_BUFFERED, EMBED_PARENT_ORIGIN } from "./config.ts";
 import { type HnSession, agentTokens, aid1JoinIdentity } from "./auth.ts";
 import { globalBans, findBan } from "./moderation.ts";
 import { isAdminId, worldHasOwner, rightsOf, VERB_NEEDS, lockRefusal } from "./rights.ts";
@@ -1124,6 +1124,10 @@ console.log(`eidoverse-worlds sequencer on http://0.0.0.0:${PORT}`);
 console.log(`  library: ${LIBRARY_DIR}`);
 console.log(`  worlds:  ${WORLDS_DIR}`);
 if (!JOIN_TOKEN) console.log("  ⚠ NO JOIN_TOKEN — the door is OPEN. Fine on a tailnet, wrong on a public box.");
+// "The handshake does nothing" has exactly two causes and this line separates
+// them: an unset origin (dormant by design) from a set one the host does not
+// match. Both are invisible from the browser, which stays silent either way.
+console.log(EMBED_PARENT_ORIGIN ? `  embedded by: ${EMBED_PARENT_ORIGIN}` : "  embedded by: nobody (EMBED_PARENT_ORIGIN unset — the frame bridge is dormant)");
 // A fresh clone without the client's install step serves a client that can
 // never wake: the importmap points `three` at client/node_modules, every
 // module import 404s, and the splash used to sit at "waking the engine"
