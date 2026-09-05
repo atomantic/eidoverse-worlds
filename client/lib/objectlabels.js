@@ -58,7 +58,7 @@ function showDetails(id) {
   if (route && portosSession()) {
     const open = document.createElement('button');
     open.type = 'button';
-    open.textContent = 'Open in PortOS';
+    open.textContent = record.entity.comp?.portos?.action === 'visit' ? 'Teleport as guest' : 'Open in PortOS';
     open.onclick = () => openInPortos(id, route);
     content.append(open);
   }

@@ -162,6 +162,7 @@ export function sendJoin() {
     spectate: CONFIG.spectate || CONFIG.renderer,
     renderer: CONFIG.renderer,
     token: CONFIG.token,
+    ...(CONFIG.guest ? { guest: true } : {}),
   }));
 }
 
@@ -233,6 +234,8 @@ let identity;   // undefined = not asked yet, null = no session
 let authCfg = null;
 
 async function fetchIdentity() {
+  // Explicit host-admitted visitors never adopt a browser account identity.
+  if (CONFIG.guest) { identity = null; authCfg = null; return; }
   if (identity !== undefined) return;
   [identity, authCfg] = await Promise.all([
     fetch('/whoami').then((r) => (r.ok ? r.json() : null)).catch(() => null),
@@ -258,7 +261,7 @@ async function fetchIdentity() {
  *  the cap: if the identity node is down we fall through to the door (which
  *  offers the same link) instead of redirect-looping. */
 export function bounceToLogin() {
-  if (identity || !authCfg?.login || CONFIG.token) return false;
+  if (CONFIG.guest || identity || !authCfg?.login || CONFIG.token) return false;
   if (localStorage.getItem('ew-authed') !== '1') return false;
   const last = Number(sessionStorage.getItem('ew-login-bounce') ?? 0);
   if (Date.now() - last < 60_000) return false;
@@ -691,7 +694,7 @@ async function onSnapshot(msg) {
   // adopt it — and say so, a silently different nameplate is confusing.
   if (msg.you && msg.you !== CONFIG.name) {
     CONFIG.name = msg.you;
-    localStorage.setItem('ew-name', msg.you);
+    if (!CONFIG.guest) localStorage.setItem('ew-name', msg.you);
     toast(`you're appearing as “${msg.you}”`, 'info', 8000);
   }
   if (typeof msg.throughSeq === 'number' && msg.throughSeq > lastSeq) lastSeq = msg.throughSeq;

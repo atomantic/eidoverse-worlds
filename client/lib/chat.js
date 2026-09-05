@@ -129,7 +129,7 @@ export function noteHistoryContext({ total = null, shown = 0, spanMs = null } = 
   const span = spanMs != null && spanMs < 120000 && shown > 1
     ? ` — the last ${Math.max(1, Math.round(spanMs / 1000))}s of talking`
     : '';
-  line.textContent = known
+  line.textContent = CONFIG.guest ? 'Guest chat starts with this visit.' : known
     ? `showing ${shown} of ${total.toLocaleString()} messages${span}. Scroll up for earlier.`
     : 'scroll up for earlier messages';
   logEl.prepend(line);
