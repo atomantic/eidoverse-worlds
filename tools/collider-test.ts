@@ -236,5 +236,15 @@ console.log('\nfloor-shaped things with lying tops (the blanket rule, issue #11)
   check('collide:"box" still wins over the blanket rule', !C.colliders.get('forced').exact);
 }
 
+{
+  C.clearColliders();
+  prop('island', { w: 16000, d: 16000, h: 0.2, collide: 'exact' });
+  check('a horizon-scale mesh has bounded spatial-index storage', C.colliders.get('island').cells.length === 0);
+  check('distant walking still finds a landscape floor', Math.abs(at(2000, 0.2, 0).ground - 0.2) < 1e-5);
+  check('radius queries include a landscape exactly once', [...C.nearColliders(2000, 0, 30)].filter(([id]) => id === 'island').length === 1);
+  check('camera rays still hit a landscape', C.raySegment(new THREE.Vector3(2000, 2, 0), new THREE.Vector3(0, -1, 0), 3) !== null);
+  C.removeCollider('island');
+  check('removed landscapes leave no stale candidates', [...C.nearColliders(2000, 0, 30)].length === 0);
+}
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

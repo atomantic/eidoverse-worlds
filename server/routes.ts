@@ -634,7 +634,7 @@ const ROUTES: Route[] = [
         // this report, is what proves a loaded browser bundle speaks them —
         // a stale bundle against a fresh server would say yes here and fail
         // there, which is the right way round.
-        capabilities: { ...FRAME_CAPABILITIES, guestEntry: 1 },
+        capabilities: { ...FRAME_CAPABILITIES, guestEntry: 1, largeWorldColliders: 1 },
         ...(process.env.WORLD_INSTANCE_NONCE ? { instance: process.env.WORLD_INSTANCE_NONCE } : {}),
       }),
       { headers: { "content-type": "application/json", "cache-control": "no-store" } }),

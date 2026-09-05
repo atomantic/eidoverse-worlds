@@ -728,9 +728,11 @@ async function renderSkyMesh(a) {
   const { SkyMesh } = await import('three/addons/objects/SkyMesh.js');
   if (!skyMesh) {
     skyMesh = new SkyMesh();
-    skyMesh.scale.setScalar(280);
-    // FogExp2(0.018) over a 280-unit dome = e^-5 — the atmosphere would render
-    // as pure fog colour. The sky is not IN the weather; exempt it.
+    // The old 280m cube ended at the edge of a small town. Keep the sky beyond
+    // landscape silhouettes and centred on the camera as visitors explore.
+    skyMesh.scale.setScalar(10000);
+    skyMesh.position.copy(camera.position);
+    // The sky is not IN the weather; exempt it from scene fog.
     skyMesh.material.fog = false;
     skyMesh.userData.noCamCollide = true;
     scene.add(skyMesh);
@@ -813,6 +815,7 @@ function applyTuning(a, day, warmth = Math.pow(1 - day, 1.5), sunPos = null, sky
 let lastClockTick = 0;
 let updateFailures = 0;
 export function updateSky(nowMs, t) {
+  if (skyMesh) skyMesh.position.copy(camera.position);
   // A toolkit sky that throws from its PER-FRAME update is invisible to the
   // try/catch around construction: the object exists, renders nothing, and
   // rejects once per frame forever — a black sky and a console filling at

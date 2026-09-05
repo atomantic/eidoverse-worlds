@@ -24,6 +24,7 @@ Constraints, on purpose:
   no-store policy as client code.
 
 Residents: `forecast.js` (day clock, weather policy, the sky fold),
+`interaction.js` (primary object-use affordances; see `../docs/interaction.md`),
 `particles.js` (the `particles` component's meaning), `residency.js` (the
 `residency` component's meaning — which hosting system lives in a world, which
 agents it fields, and what the log says they actually did; see
