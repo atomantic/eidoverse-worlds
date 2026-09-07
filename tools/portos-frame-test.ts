@@ -6,7 +6,7 @@ import {FRAME_VERSION,FRAME_CAPABILITIES,acceptsFrameMessage,frameRouteFor,
   readFrameNonce,readFrameOrigin,readFramePreference,readFrameRoute} from '../shared/portosframe.js';
 
 // Capabilities are independently versioned and advertised only for what ships.
-a.deepEqual(FRAME_CAPABILITIES,{objectLabels:1,portosNavigation:1,labelPreferences:1});
+a.deepEqual(FRAME_CAPABILITIES,{objectLabels:1,portosNavigation:1,labelPreferences:1,worldDeparture:1,objectInteraction:1});
 a.equal(Object.isFrozen(FRAME_CAPABILITIES),true);
 
 // The host's vocabulary maps onto ours; nothing else is a preference at all.

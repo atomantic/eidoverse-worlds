@@ -8,7 +8,7 @@
 export const FRAME_VERSION = 1;
 // What THIS build implements, versioned independently so a host can adopt one
 // leg without the others. Reported by GET /version and echoed at handshake.
-export const FRAME_CAPABILITIES = Object.freeze({ objectLabels: 1, portosNavigation: 1, labelPreferences: 1 });
+export const FRAME_CAPABILITIES = Object.freeze({ objectLabels: 1, portosNavigation: 1, labelPreferences: 1, worldDeparture: 1, objectInteraction: 1 });
 // The host's wire vocabulary mapped onto the preference names this renderer
 // already stores. `all-nearby` is the host's word for our `all`; the mapping
 // lives here so no stored preference or world record has to change to speak it.

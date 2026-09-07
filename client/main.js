@@ -2,7 +2,8 @@
 // iframe's load event, which can land before core.js has a renderer. This
 // module imports nothing heavy so its receiver is installed by then; a
 // connect that still beats it is held until configuration resolves.
-import './lib/portosframe.js';
+import { setDepartureHandler } from './lib/portosframe.js';
+import { tickInteraction } from './lib/interaction.js';
 import { initObjectLabels, tickObjectLabels } from './lib/objectlabels.js';
 // eidoverse-worlds browser client.
 //
@@ -36,7 +37,7 @@ import {
 } from './lib/controller.js';
 import { remotes, updateRemotes, updateGaze } from './lib/remotes.js';
 import {
-  net, connect, initIdentity, loginUrl, wireNet, sendVerb, sendPose, sendWhisper, sendTyping,
+  net, connect, leaveWorld, initIdentity, loginUrl, wireNet, sendVerb, sendPose, sendWhisper, sendTyping,
 } from './lib/net.js';
 import { updateBuild, toggleEditMode, isEditing } from './lib/build.js';
 import { initPalette } from './lib/palette.js';
@@ -449,6 +450,8 @@ registerSystem('promote-tail', () => drainPromoteTail());        // §16.2.C: pr
 registerSystem('debug', (dt, t, now) => updateDebug(now));       // F3 wireframes
 registerSystem('send-pose', (dt, t, now) => sendPose(now));
 registerSystem('object-labels', () => tickObjectLabels()); // after motion and camera
+setDepartureHandler(leaveWorld);
+registerSystem('object-interaction', () => tickInteraction());
 registerSystem('render', renderWorld);
 let _pulseAt = 0;
 registerSystem('pulse', (dt, t, now) => {
