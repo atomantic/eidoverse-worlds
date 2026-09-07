@@ -37,6 +37,9 @@ let hydrating = false;
 let pendingLive = [];
 let lastSeq = -1;
 let retryDelay = 1200;
+let retryTimer = null;
+let departed = false;
+let connectionGeneration = 0;
 const verbQueue = [];   // verbs issued while disconnected — flushed on rejoin
 
 // Supplied by main.js so net can read/write body state without importing the
@@ -53,6 +56,7 @@ export function wireNet(h) { hooks = { ...hooks, ...h }; }
 // ---------------------------------------------------------------- sending
 
 export function sendVerb(verb, args) {
+  if (departed) return;
   if (net.joined && net.ws?.readyState === 1) {
     net.ws.send(JSON.stringify({ type: 'verb', verb, args }));
   } else {
@@ -218,13 +222,42 @@ export function sendPose(now) {
  *  filed under the old name: your remembered sleeping place, and any whisper
  *  held for you while you were away. */
 export function rejoin() {
-  intentionalClose = true;
   try { net.ws?.close(); } catch { /* already gone */ }
+  net.ws = null;
   net.joined = false;
+  departed = false;
   connect();
 }
 
-let intentionalClose = false;
+/** Stop presence and retries before the host opens another world. */
+export async function leaveWorld() {
+  departed = true;
+  connectionGeneration += 1;
+  clearTimeout(retryTimer);
+  verbQueue.length = 0;
+  net.joined = false;
+  net.status = 'departed';
+  bus.emit('net', net);
+  const early = globalThis.__ewEarlySocket;
+  globalThis.__ewEarlySocket = null;
+  const sockets = [...new Set([net.ws, early?.ws].filter(Boolean))];
+  await Promise.all(sockets.map(ws => new Promise((resolve, reject) => {
+    if (ws.readyState === 3) { resolve(); return; }
+    const closed = () => { clearTimeout(timer); ws.removeEventListener('close', closed); resolve(); };
+    const timer = setTimeout(() => {
+      ws.removeEventListener('close', closed);
+      reject(new Error('World connection did not close.'));
+    }, 3000);
+    ws.addEventListener('close', closed);
+    ws.close(1000, 'Leaving world');
+  })));
+}
+
+// Browsers can freeze a page instead of destroying it during navigation.
+addEventListener('pagehide', () => { void leaveWorld().catch(() => {}); });
+addEventListener('pageshow', event => {
+  if (event.persisted && departed) { departed = false; void connect().catch(e => report('reconnect', e)); }
+});
 
 // archipelago-home session (home-node.md §7): the server may know who we are
 // from the ew_sess cookie (set by /auth after a Discord login). Fetched once;
@@ -285,7 +318,11 @@ export function loginUrl() {
 }
 
 export async function connect() {
+  if (departed) return;
+  clearTimeout(retryTimer);
+  const generation = ++connectionGeneration;
   await fetchIdentity();
+  if (departed || generation !== connectionGeneration) return;
   // Login-required deployment and we have neither a session nor a door key:
   // go get one. The home node round-trips through /auth back to here.
   if (!identity && authCfg?.required && authCfg?.login && !CONFIG.token) {
@@ -317,12 +354,13 @@ export async function connect() {
       // buffering handler still catches anything arriving mid-drain; the
       // rewire below is synchronous with the final empty check, so no
       // message can slip between the two.
-      while (early.buffered.length) {
+      while (early.buffered.length && !departed && generation === connectionGeneration) {
         const raw = early.buffered.shift();
         let msg;
         try { msg = JSON.parse(raw); } catch { continue; }
         try { await handle(msg); } catch (e) { report(`net ${msg.type}`, e); }
       }
+      if (departed || generation !== connectionGeneration) return;
       wireSocket(net.ws);   // live delivery takes over (onopen stays the boot script's)
       return;
     }
@@ -331,7 +369,11 @@ export async function connect() {
   net.status = 'connecting';
   bus.emit('net', net);
   net.ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
-  net.ws.onopen = () => { retryDelay = 1200; sendJoin(); };
+  const current = net.ws;
+  net.ws.onopen = () => {
+    if (departed || current !== net.ws) { current.close(); return; }
+    retryDelay = 1200; sendJoin();
+  };
   wireSocket(net.ws);
 }
 
@@ -339,8 +381,8 @@ export async function connect() {
  *  early socket (the inline boot script in index.html — see connect()). */
 function wireSocket(ws) {
   ws.onclose = (ev) => {
+    if (ws !== net.ws || departed) return;
     net.joined = false;
-    if (intentionalClose) { intentionalClose = false; return; } // rejoin() drives its own reconnect
     // 4002 = session takeover: this identity re-arrived elsewhere. Retrying
     // would kick THAT session and ping-pong forever.
     if (ev.code === 4002) {
@@ -387,13 +429,14 @@ function wireSocket(ws) {
     }
     net.status = 'retrying';
     bus.emit('net', net);
-    setTimeout(connect, retryDelay);
+    retryTimer = setTimeout(() => { void connect().catch(e => report('reconnect', e)); }, retryDelay);
     retryDelay = Math.min(15000, retryDelay * 1.6); // back off instead of hammering
   };
 
   ws.onerror = () => { /* onclose always follows; nothing useful here */ };
 
   ws.onmessage = async (ev) => {
+    if (departed || ws !== net.ws) return;
     let msg;
     try { msg = JSON.parse(ev.data); } catch { return; }
     try { await handle(msg); } catch (e) { report(`net ${msg.type}`, e); }

@@ -114,6 +114,14 @@ function localBox(obj) {
 // world-space cell and only the 3×3 neighbourhood around the query is tested.
 const CELL = 8; // metres
 const buckets = new Map();
+// Landscapes can span kilometres. Index them once, not in millions of cells;
+// the existing exact BVH still answers the narrow-phase walking/camera query.
+const oversized = new Set();
+function* cellIds(x, z, includeOversized) {
+  if (includeOversized) yield* oversized;
+  const ids = buckets.get(`${x},${z}`);
+  if (ids) yield* ids;
+}
 const cellKey = (x, z) => `${Math.floor(x / CELL)},${Math.floor(z / CELL)}`;
 
 function bucketAdd(id, entry) {
@@ -127,6 +135,7 @@ function bucketAdd(id, entry) {
   entry.cells = [];
   const x0 = Math.floor((obj.position.x - r) / CELL), x1 = Math.floor((obj.position.x + r) / CELL);
   const z0 = Math.floor((obj.position.z - r) / CELL), z1 = Math.floor((obj.position.z + r) / CELL);
+  if ((x1 - x0 + 1) * (z1 - z0 + 1) > 4096) { oversized.add(id); return; }
   for (let cx = x0; cx <= x1; cx++) {
     for (let cz = z0; cz <= z1; cz++) {
       const k = `${cx},${cz}`;
@@ -137,6 +146,7 @@ function bucketAdd(id, entry) {
   }
 }
 function bucketRemove(id, entry) {
+  oversized.delete(id);
   for (const k of entry?.cells ?? []) {
     const s = buckets.get(k);
     if (s) { s.delete(id); if (!s.size) buckets.delete(k); }
@@ -516,8 +526,7 @@ function* near(x, z) {
   const cx = Math.floor(x / CELL), cz = Math.floor(z / CELL);
   for (let i = -1; i <= 1; i++) {
     for (let j = -1; j <= 1; j++) {
-      const s = buckets.get(`${cx + i},${cz + j}`);
-      if (!s) continue;
+      const s = cellIds(cx + i, cz + j, i === -1 && j === -1);
       for (const id of s) {
         const e = colliders.get(id);
         if (e) yield e;
@@ -539,8 +548,7 @@ export function* nearColliders(x, z, r = CELL) {
   _seen.clear();
   for (let cx = x0; cx <= x1; cx++) {
     for (let cz = z0; cz <= z1; cz++) {
-      const s = buckets.get(`${cx},${cz}`);
-      if (!s) continue;
+      const s = cellIds(cx, cz, cx === x0 && cz === z0);
       for (const id of s) {
         if (_seen.has(id)) continue;
         _seen.add(id);
@@ -598,8 +606,7 @@ export function raySegment(origin, dir, far, excludeId = null) {
   _rsSeen.clear();
   for (let cx = x0; cx <= x1; cx++) {
     for (let cz = z0; cz <= z1; cz++) {
-      const set = buckets.get(`${cx},${cz}`);
-      if (!set) continue;
+      const set = cellIds(cx, cz, cx === x0 && cz === z0);
       for (const id of set) {
         if (id === excludeId || _rsSeen.has(id)) continue;
         _rsSeen.add(id);
@@ -873,5 +880,6 @@ export function surfaceUnder(x, z, terrainAt, maxY = Infinity, skipId = null) {
 export function clearColliders() {
   colliders.clear();
   buckets.clear();
+  oversized.clear();
   libCache.clear();
 }

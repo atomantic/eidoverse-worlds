@@ -24,6 +24,8 @@ let nonce = null;       // the CURRENT session; a replacement retires the last
 let preference = null;  // last preference the host asked for
 const held = [];        // connects that arrived before configuration landed
 const preferenceSinks = new Set(), sessionSinks = new Set();
+let departureHandler = null, departure = null;
+export function setDepartureHandler(handler) { departureHandler = handler; }
 
 /** Is a validated host session live right now? */
 export function portosSession() { return nonce !== null; }
@@ -88,6 +90,14 @@ function receive(event) {
   // A preference only ever rides the session that asked for it.
   else if (data.type === 'portos:label-preference' && nonce !== null && data.nonce === nonce) {
     applyPreference(data.labelVisibility);
+  }
+  else if (data.type === 'portos:depart' && nonce !== null && data.nonce === nonce && departureHandler) {
+    const departingNonce = nonce;
+    departure ??= Promise.resolve().then(() => departureHandler()).then(() => true, () => false);
+    void departure.then(ok => {
+      if (nonce === departingNonce) host.postMessage({ type: 'eidoverse:departed', version: FRAME_VERSION,
+        nonce: departingNonce, ok }, origin);
+    });
   }
   // Anything else is ignored: an unsupported message leaves the scene alone.
 }

@@ -3,6 +3,7 @@ import { THREE, camera, renderer } from './core.js';
 import { CONFIG, bus } from './base.js';
 import { raySegment } from './colliders.js';
 import { entities } from './world.js';
+import { structureObject } from './realize/structure.js';
 import { state, onWorldChange } from './state.js';
 import { objectIdentity, readLabel, visibleLabels } from '../../shared/label.js';
 import { registerEditor } from './inspect.js';
@@ -147,7 +148,7 @@ function positions(source = authoredRecords) {
   positioned.length = 0;
   camera.updateMatrixWorld();
   for (const record of source) {
-    const object = entities.get(record.id);
+    const object = structureObject(record.id) || entities.get(record.id);
     if (!object || !object.visible || object.userData.placeholder) continue;
     object.updateWorldMatrix(true, false);
     object.getWorldPosition(point);
