@@ -3,10 +3,10 @@
 // DOM action and the rejection matrix are tools/portos-frame-browser-test.ts.
 import {strict as a} from 'node:assert';
 import {FRAME_VERSION,FRAME_CAPABILITIES,acceptsFrameMessage,frameRouteFor,
-  readFrameNonce,readFrameOrigin,readFramePreference,readFrameRoute} from '../shared/portosframe.js';
+  readFrameIdentityName,readFrameNonce,readFrameOrigin,readFramePreference,readFrameRoute} from '../shared/portosframe.js';
 
 // Capabilities are independently versioned and advertised only for what ships.
-a.deepEqual(FRAME_CAPABILITIES,{objectLabels:1,portosNavigation:1,labelPreferences:1,worldDeparture:1,objectInteraction:1});
+a.deepEqual(FRAME_CAPABILITIES,{objectLabels:1,portosNavigation:1,labelPreferences:1,worldDeparture:1,objectInteraction:1,identityRenameRequest:1});
 a.equal(Object.isFrozen(FRAME_CAPABILITIES),true);
 
 // The host's vocabulary maps onto ours; nothing else is a preference at all.
@@ -43,6 +43,11 @@ a.equal(frameRouteFor(null),null);
 a.equal(readFrameNonce('abc123'),'abc123');
 a.equal(readFrameNonce('n'.repeat(256)),'n'.repeat(256));
 for (const bad of ['','x'.repeat(257),null,undefined,7,{},['a']]) a.equal(readFrameNonce(bad as never),null);
+
+a.equal(readFrameIdentityName('  Example Visitor  '),'Example Visitor');
+a.equal(readFrameIdentityName('n'.repeat(64)),'n'.repeat(64));
+for (const bad of ['', ' ', 'n'.repeat(65), 'line\nbreak', null, undefined, 7, {}, ['name']])
+  a.equal(readFrameIdentityName(bad as never),null,`identity ${JSON.stringify(bad)}`);
 
 // An exact origin, refused rather than repaired: the browser compares with ===.
 a.equal(readFrameOrigin('https://portos.example'),'https://portos.example');

@@ -8,7 +8,7 @@
 export const FRAME_VERSION = 1;
 // What THIS build implements, versioned independently so a host can adopt one
 // leg without the others. Reported by GET /version and echoed at handshake.
-export const FRAME_CAPABILITIES = Object.freeze({ objectLabels: 1, portosNavigation: 1, labelPreferences: 1, worldDeparture: 1, objectInteraction: 1 });
+export const FRAME_CAPABILITIES = Object.freeze({ objectLabels: 1, portosNavigation: 1, labelPreferences: 1, worldDeparture: 1, objectInteraction: 1, identityRenameRequest: 1 });
 // The host's wire vocabulary mapped onto the preference names this renderer
 // already stores. `all-nearby` is the host's word for our `all`; the mapping
 // lives here so no stored preference or world record has to change to speak it.
@@ -36,6 +36,17 @@ export function readFrameRoute(value) {
 /** An opaque session nonce, or null. Never parsed — only compared. */
 export function readFrameNonce(value) {
   return typeof value === 'string' && value.length > 0 && value.length <= 256 ? value : null;
+}
+
+/** A human identity draft for the host, or null. The host still owns the
+ *  authoritative validation and save; this keeps malformed requests off the
+ *  frame wire and matches the shared 64-character identity boundary. */
+export function readFrameIdentityName(value) {
+  if (typeof value !== 'string') return null;
+  const name = value.trim();
+  const hasControlCharacter = [...name]
+    .some((character) => character.charCodeAt(0) <= 31 || character.charCodeAt(0) === 127);
+  return name.length > 0 && name.length <= 64 && !hasControlCharacter ? name : null;
 }
 
 /** An exact http(s) origin, or null. A value carrying a path, a query or a

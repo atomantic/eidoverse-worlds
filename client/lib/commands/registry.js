@@ -17,7 +17,7 @@
 export const COMMANDS = [
   { name: 'w', aliases: ['whisper'], help: '/w <name> <message> — whisper, privately' },
   { name: 'r', aliases: ['reply'], help: 'reply to the last whisper you got' },
-  { name: 'name', aliases: ['rename'], help: '/name <new name> — change what the world calls you' },
+  { name: 'name', aliases: ['rename'], help: '/name <new name> — ask your home host to stage a new identity for re-entry' },
   { name: 'me', help: 'describe an action — "/me waves"' },
   { name: 'emote', help: '/emote <name> — the emote bar\'s gestures (🎭, or number keys)' },
   { name: 'sit', help: '/sit [thing] — use a nearby seat; /sit ground (or /sit here) sits where you are' },
