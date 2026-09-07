@@ -5,12 +5,12 @@
 // before this renderer has a scene. A connect that beats our configuration
 // fetch is HELD, never answered from the sender's own claim about itself.
 //
-// Read-only in both directions: no verb, no lease, no world write, and the one
-// outbound message names an already-projected entity plus one route the host
-// re-checks against its own legend.
+// No message writes the world directly: navigation names an already-projected
+// entity, while identity rename requests only stage a bounded draft in a host
+// that explicitly advertises support. The host still owns validation and save.
 import {
   FRAME_VERSION, FRAME_CAPABILITIES, acceptsFrameMessage,
-  readFrameNonce, readFrameOrigin, readFramePreference, readFrameRoute, frameRouteFor,
+  readFrameIdentityName, readFrameNonce, readFrameOrigin, readFramePreference, readFrameRoute, frameRouteFor,
 } from '../../shared/portosframe.js';
 
 export { frameRouteFor };
@@ -22,6 +22,7 @@ let origin = null;      // the exact configured parent origin, once known
 let configured = false; // the fetch settled — held connects stop accumulating
 let nonce = null;       // the CURRENT session; a replacement retires the last
 let preference = null;  // last preference the host asked for
+let identityRenameEnabled = false;
 const held = [];        // connects that arrived before configuration landed
 const preferenceSinks = new Set(), sessionSinks = new Set();
 let departureHandler = null, departure = null;
@@ -54,6 +55,15 @@ export function openInPortos(entityId, route) {
   return true;
 }
 
+/** Stage a name in the trusted host's identity settings. The command cannot
+ *  rename a live session or write a world on its own. */
+export function requestIdentityRename(value) {
+  const name = readFrameIdentityName(value);
+  if (!host || origin === null || nonce === null || !identityRenameEnabled || name === null) return false;
+  host.postMessage({ type: 'eidoverse:identity-rename', version: FRAME_VERSION, nonce, name }, origin);
+  return true;
+}
+
 function applyPreference(value) {
   const next = readFramePreference(value);
   if (next === null || next === preference) return;
@@ -68,6 +78,7 @@ function connect(data) {
   // unusable: whatever the host held is gone, so its old nonce must stop
   // working rather than outlive the handshake that retired it.
   nonce = next;
+  identityRenameEnabled = next !== null && data.capabilities?.identityRenameRequest === 1;
   if (next !== null) {
     host.postMessage({ type: 'eidoverse:ready', version: FRAME_VERSION, nonce: next,
       capabilities: { ...FRAME_CAPABILITIES } }, origin);
