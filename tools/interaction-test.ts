@@ -1,4 +1,4 @@
-// Rendered control boundary: labels off, range/occlusion, typing, repeat, and
+// Rendered control boundary: labels off, range/occlusion, typing, prompts, and
 // actual use-vs-host routing, with no running world or GPU required.
 import { strict as assert } from 'node:assert';
 import { mock } from 'bun:test';
@@ -8,7 +8,7 @@ GlobalRegistrator.register({ url: 'https://renderer.example/' });
 const base = `${import.meta.dir}/../client/lib/`;
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
 camera.position.set(0, 2, 5); camera.lookAt(0, 1, 0); camera.updateMatrixWorld();
-let key: Function, occluded = false, hosted = true, overlay = false;
+let action: Function, occluded = false, hosted = true, overlay = false;
 const uses: any[] = [], visits: any[] = [];
 const myState = { pos: new THREE.Vector3(0, 0, 1) };
 const state = { st: { entities: { lamp: { comp: { interaction: { action: 'toggle', label: 'Toggle lamp' } } } } } };
@@ -16,7 +16,9 @@ const entities = new Map([['lamp', new THREE.Group()]]);
 let building = null;
 mock.module(base+'realize/structure.js', () => ({ structureObject: () => building }));
 mock.module(base+'core.js', () => ({ THREE, camera }));
-mock.module(base+'base.js', () => ({ CONFIG: {}, bus: { on: (_: string, fn: Function) => { key = fn; } } }));
+mock.module(base+'base.js', () => ({ CONFIG: {}, bus: { on: (_: string, fn: Function) => { action = fn; } } }));
+mock.module(base+'input.js', () => ({ requestAction: (value: string) => action(value),
+  usePrompt: () => 'X / □', setInputAvailable() {}, noteInput() {} }));
 mock.module(base+'controller.js', () => ({ myState, photoMode: false }));
 mock.module(base+'build.js', () => ({ isEditing: () => false }));
 mock.module(base+'ui.js', () => ({ isOverlayOpen: () => overlay }));
@@ -27,12 +29,13 @@ mock.module(base+'net.js', () => ({ net: { joined: true }, sendVerb: (...args: a
 mock.module(base+'portosframe.js', () => ({ portosSession: () => hosted,
   frameRouteFor: (e: any) => e.comp.portos?.route, openInPortos: (...args: any[]) => visits.push(args) }));
 const { tickInteraction } = await import('../client/lib/interaction.js');
-const press = (repeat = false) => key({ code: 'KeyE', repeat, preventDefault() {} });
+const press = () => action('use');
 tickInteraction(100);
 const button = document.querySelector<HTMLButtonElement>('.ew-interaction')!;
 assert.equal(button.hidden, false);
 assert.match(button.textContent!, /Toggle lamp/);
-press(); press(true);
+assert.match(button.textContent!, /X \/ □/);
+press(); action('cancel');
 assert.deepEqual(uses, [['use', { id: 'lamp', action: 'toggle' }]]);
 occluded = true; press(); tickInteraction(200); assert(button.hidden);
 occluded = false;
