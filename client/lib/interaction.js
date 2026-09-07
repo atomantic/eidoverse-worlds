@@ -12,6 +12,9 @@ import { raySegment } from './colliders.js';
 import { net, sendVerb } from './net.js';
 import { frameRouteFor, portosSession, openInPortos } from './portosframe.js';
 import { interactionAction } from '../../shared/interaction.js';
+import { requestAction, usePrompt, setInputAvailable, noteInput } from './input.js';
+
+setInputAvailable(() => net.joined && !CONFIG.renderer);
 
 const point = new THREE.Vector3(), eye = new THREE.Vector3(), direction = new THREE.Vector3();
 let button = null, current = null, lastScan = -Infinity;
@@ -53,13 +56,7 @@ function activate() {
   else sendVerb('use', { id: target.id, action: target.action });
 }
 
-bus.on('key', event => {
-  if (event.code !== 'KeyE' || event.repeat || event.ctrlKey || event.altKey || event.metaKey
-    || document.activeElement?.closest('button, a')) return;
-  if (!choose()) return;
-  event.preventDefault();
-  activate();
-});
+bus.on('input-action', action => { if (action === 'use') activate(); });
 
 export function tickInteraction(now = performance.now()) {
   if (!button) {
@@ -67,7 +64,8 @@ export function tickInteraction(now = performance.now()) {
     button.type = 'button';
     button.className = 'ew-interaction';
     button.style.cssText = 'position:fixed;bottom:110px;left:50%;transform:translateX(-50%);z-index:6;max-width:calc(100vw - 32px);min-height:44px;padding:10px 18px;border:1px solid #a7e8d5;border-radius:10px;background:#102425ee;color:#e8fff7;font:600 14px/1.4 sans-serif;cursor:pointer';
-    button.addEventListener('click', event => { event.stopPropagation(); activate(); });
+    button.addEventListener('click', event => { event.stopPropagation(); requestAction('use'); });
+    button.addEventListener('pointerdown', event => noteInput(event.pointerType === 'touch' ? 'touch' : 'keyboard'));
     for (const type of ['pointerdown', 'mousedown', 'keydown']) button.addEventListener(type, event => event.stopPropagation());
     document.body.append(button);
   }
@@ -76,5 +74,5 @@ export function tickInteraction(now = performance.now()) {
   lastScan = now;
   current = choose();
   button.hidden = !current;
-  if (current) button.textContent = `E · ${current.label}`;
+  if (current) button.textContent = `${usePrompt()} · ${current.label}`;
 }

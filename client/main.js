@@ -4,6 +4,7 @@
 // connect that still beats it is held until configuration resolves.
 import { setDepartureHandler } from './lib/portosframe.js';
 import { tickInteraction } from './lib/interaction.js';
+import { movementInput } from './lib/input.js';
 import { initObjectLabels, tickObjectLabels } from './lib/objectlabels.js';
 // eidoverse-worlds browser client.
 //
@@ -32,7 +33,7 @@ import { initCauses } from './lib/realize/causes.js';
 import './lib/emitters.js';
 import { tickMotion } from './lib/motion.js';
 import {
-  myState, updateMe, updateSpectator, setCamYaw, setPosture, togglePhotoMode,
+  myState, updateMe, updateInput, updateSpectator, setCamYaw, setPosture, togglePhotoMode,
   setRightsHook, setMeHook, setFolded,
 } from './lib/controller.js';
 import { remotes, updateRemotes, updateGaze } from './lib/remotes.js';
@@ -416,6 +417,9 @@ registerSystem('sky', (dt, t, now) => updateSky(now, t));
 registerSystem('materials', (dt, t, now) => updateMaterials(now)); // weather → uniforms
 registerSystem('rig', (dt, t, now) => updateRig(now));          // light slots follow requests
 registerSystem('me-drive', (dt) => {
+  updateInput(dt);
+  const input = movementInput();
+  if (isDowned() && (input.moveX || input.moveZ || input.jump)) getUp();
   if (CONFIG.renderer) { /* camera is driven per snap request */ }
   else if (CONFIG.spectate) updateSpectator(dt, CONFIG.follow ? remotes.get(CONFIG.follow) : null);
   else if (isDowned()) stepRagdoll(dt);     // the controller yields while limp

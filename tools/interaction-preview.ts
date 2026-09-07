@@ -48,6 +48,8 @@ const operations = [
       apertures: [[0, -1, 0, 'window'], [0, 0, 0, 'window'], [1, -1, 0, 'window'], [1, 1, 0, 'window']] }] } }],
   ['comp', { id: 'example-pod', type: 'label', data: { name: 'Example destination', visibility: 'nearby' } }],
   ['comp', { id: 'example-pod', type: 'portos', data: { route: '/eidoverse', action: 'visit' } }],
+  // Standalone uses the same object as an ordinary logged interaction.
+  ['comp', { id: 'example-pod', type: 'interaction', data: { action: 'test', label: 'Test object interaction' } }],
 ];
 for (const [verb, args] of operations) {
   messages.length = 0;
@@ -62,8 +64,8 @@ seed.addEventListener('message', event => {
 });
 const html = `<!doctype html><html><head><title>World interaction acceptance</title></head>
 <body style="margin:0;background:#132327;color:white;font:16px sans-serif">
-<p id="status" style="margin:8px">Approach the example pod and press E, or tap its prompt. Labels are off.</p>
-<iframe id="world" title="Scratch world" style="width:100%;height:90vh;border:0"></iframe>
+<p id="status" style="margin:8px">Click the world, then approach the pod and press E or controller X / Square, or tap its prompt. Labels are off.</p>
+<iframe id="world" title="Scratch world" allow="gamepad" style="width:100%;height:90vh;border:0"></iframe>
 <script>
 const frame = document.getElementById('world'), status = document.getElementById('status');
 const origin = ${JSON.stringify(rendererOrigin)};
