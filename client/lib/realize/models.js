@@ -228,7 +228,9 @@ function scheduleLoad(id, ent, gen, tier = null) {
       // lodNegotiable) and from the live distance; a re-tier brings the tier
       // the sweep chose
       await negotiationReady;
-      if (signal.aborted) return;
+      if (signal.aborted || tracked.get(id)?.gen !== gen) return;
+      t0.phase = 'loading';
+      bus.emit('materialization', { id });
       const want = tier ?? tierFor(ent, null);
       const obj = await loadGLB(ent.lib, { tier: want });
       const cur = state.st.entities[id];
@@ -261,6 +263,9 @@ function scheduleLoad(id, ent, gen, tier = null) {
         if (t) t.retierAt = Date.now();
         return;
       }
+      delete t.failedAt;
+      delete t.error;
+      delete t.phase;
       realizeModel(id, cur, obj);
     },
   }).done.catch((e) => {
