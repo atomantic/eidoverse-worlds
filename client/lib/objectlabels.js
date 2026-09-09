@@ -3,9 +3,12 @@ import { THREE, camera, renderer } from './core.js';
 import { CONFIG, bus } from './base.js';
 import { raySegment } from './colliders.js';
 import { entities } from './world.js';
+import { structureObject } from './realize/structure.js';
 import { state, onWorldChange } from './state.js';
 import { objectIdentity, readLabel, visibleLabels } from '../../shared/label.js';
 import { registerEditor } from './inspect.js';
+// Fork-only adapter: no host routes or messages belong in the upstream renderer.
+import { frameRouteFor, onPortosLabelPreference, onPortosSession, openInPortos, portosSession } from './portosframe.js';
 
 let mode = CONFIG.objectLabels ?? 'off', overlay, panel, content, selected = null;
 let records = [], authoredRecords = [], candidates = [], lastCandidates = -Infinity, lastSight = 0, cursor = 0;
@@ -60,6 +63,14 @@ function showDetails(id) {
     const text = document.createElement('p');
     text.textContent = `${title}: ${Object.keys(values).join(', ')}`;
     content.append(text);
+  }
+  const route = frameRouteFor(record.entity);
+  if (route && portosSession()) {
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.textContent = record.entity.comp?.portos?.action === 'visit' ? 'Teleport as guest' : 'Open in PortOS';
+    open.onclick = () => openInPortos(id, route);
+    content.append(open);
   }
   panel.hidden = false;
 }
@@ -163,7 +174,7 @@ function positions(source = authoredRecords) {
   positioned.length = 0;
   camera.updateMatrixWorld();
   for (const record of source) {
-    const object = entities.get(record.id);
+    const object = structureObject(record.id) || entities.get(record.id);
     if (!object || !object.visible || object.userData.placeholder) continue;
     object.updateWorldMatrix(true, false);
     object.getWorldPosition(point);
@@ -288,3 +299,8 @@ registerEditor(({ id, bag, commit, esc }) => {
     root.querySelector('[data-label-remove]').onclick = () => commit('comp', { id, type: 'label', data: null });
   } };
 });
+
+// Subscribe even while labels are off, so a late trusted handshake can enable
+// the overlay. Embedded preferences stay in this session, never framework storage.
+onPortosLabelPreference(mode => configureObjectLabels({ mode }));
+onPortosSession(() => { if (selected) showDetails(selected); });

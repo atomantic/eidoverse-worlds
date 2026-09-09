@@ -32,6 +32,9 @@ mock.module(`${base}colliders.js`, () => ({
   },
 }));
 mock.module(`${base}inspect.js`, () => ({ registerEditor: () => {} }));
+// objectlabels prefers a structure's visible geometry over its hidden anchor;
+// this suite is about plaques, so every record falls through to entities.
+mock.module(`${base}realize/structure.js`, () => ({ structureObject: () => null }));
 const { CONFIG } = await import('../client/lib/base.js');
 const { state, hydrate, foldLive } = await import('../client/lib/state.js');
 const { emptyState, foldEntry } = await import('../shared/fold.js');

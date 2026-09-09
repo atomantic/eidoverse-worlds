@@ -7,6 +7,9 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { totalmem } from "node:os";
+// The browser applies this same rule to the value it is handed back, so the
+// two ends cannot drift into disagreeing about what an origin is.
+import { readFrameOrigin } from "../shared/portosframe.js";
 
 export const PORT = Number(process.env.PORT ?? 8940);
 // Show-night door policy. Empty = open (dev on a tailnet). On a public box you
@@ -49,6 +52,22 @@ export const OPT_MEM_BUDGET_MB = envNumber("OPT_MEM_BUDGET_MB", Math.floor(usabl
 // estimate above: measured 259MB for a 5.4MB store GLB (x48). The KTX2/LOD
 // arms were not measured separately and are assumed the same order.
 export const OPT_COST_FACTOR = envNumber("OPT_COST_FACTOR", 48, (n) => n > 0);
+// The ONE origin allowed to drive the browser's frame bridge (docs/labels.md).
+// Empty = dormant: an arbitrary opener, a referrer or a query parameter is
+// never an authorization boundary, so without this there is nobody to trust.
+// GET /embed-config discloses it to whoever loads the client, which is the
+// embedding host by construction — leave it unset on a public sequencer.
+export const EMBED_PARENT_ORIGIN = (() => {
+  const raw = process.env.EMBED_PARENT_ORIGIN ?? "";
+  if (!raw) return "";
+  // An exact origin only. A value carrying a path, a query or even a trailing
+  // slash is refused rather than repaired: the browser compares with ===, so a
+  // repaired value would be a silent mismatch at handshake time.
+  const origin = readFrameOrigin(raw);
+  if (origin) return origin;
+  console.log(`  ⚠ EMBED_PARENT_ORIGIN is not an exact http(s) origin — the frame bridge stays OFF: ${raw}`);
+  return "";
+})();
 export const ROOT = resolve(import.meta.dir, "..");
 // Dev instances point this elsewhere so a scratch sequencer can't append to the
 // live worlds' logs (they are append-only and forever — a stray dev spawn is

@@ -359,9 +359,11 @@ function realize(id, ent) {
 /** The plan a building is currently realized from — the describer's door, and
  *  the reason look() can answer "which room" without touching the scene. */
 export const structurePlan = (id) => tracked.get(id)?.plan ?? null;
-export const structureIds = () => [...tracked.keys()];
-/** Visible native geometry for contextual interaction when its anchor is hidden. */
+/** The visible building, rather than the hidden model used as its anchor —
+ *  also the native geometry contextual interaction aims at when that anchor
+ *  is hidden. */
 export const structureObject = (id) => tracked.get(id)?.group ?? null;
+export const structureIds = () => [...tracked.keys()];
 
 /** Full idempotent pass: hydration, world switch, late enable. */
 export function reconcileStructures() {

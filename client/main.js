@@ -1,3 +1,11 @@
+// FIRST, and side-effecting: an embedding host posts portos:connect on the
+// iframe's load event, which can land before core.js has a renderer. This
+// module imports nothing heavy so its receiver is installed by then; a
+// connect that still beats it is held until configuration resolves.
+import { setDepartureHandler } from './lib/portosframe.js';
+import { tickInteraction } from './lib/interaction.js';
+import { movementInput } from './lib/input.js';
+import { initObjectLabels, tickObjectLabels } from './lib/objectlabels.js';
 // eidoverse-worlds browser client.
 //
 // Two planes: the world log (verbs, ordered, replayed on join) and presence
@@ -31,7 +39,7 @@ import {
 } from './lib/controller.js';
 import { remotes, updateRemotes, updateGaze } from './lib/remotes.js';
 import {
-  net, connect, initIdentity, loginUrl, wireNet, sendVerb, sendPose, sendWhisper, sendTyping,
+  net, connect, leaveWorld, initIdentity, loginUrl, wireNet, sendVerb, sendPose, sendWhisper, sendTyping,
 } from './lib/net.js';
 import { updateBuild, toggleEditMode, isEditing } from './lib/build.js';
 // AFTER build/controller/net, not before them. Import position is evaluation
@@ -454,6 +462,7 @@ registerSystem('promote-tail', () => drainPromoteTail());        // §16.2.C: pr
 registerSystem('debug', (dt, t, now) => updateDebug(now));       // F3 wireframes
 registerSystem('send-pose', (dt, t, now) => sendPose(now));
 registerSystem('object-labels', () => tickObjectLabels()); // after motion and camera
+setDepartureHandler(leaveWorld);
 registerSystem('object-interaction', () => tickInteraction());
 registerSystem('render', renderWorld);
 let _pulseAt = 0;
