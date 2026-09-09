@@ -10,7 +10,7 @@ import { join } from "node:path";
 // config FIRST — it carries the WORLDS_DIR mkdir, and auth.ts/moderation.ts
 // carry their restore-at-boot blocks, so this import order IS the unsplit
 // file's boot order: mkdir → session restore → ban restore (§15, step 7a).
-import { PORT, JOIN_TOKEN, RECORD, ROOT, WORLDS_DIR, LIBRARY_DIR, MSG_RATE, FRAME_MS, FRAME_SKIP_BUFFERED } from "./config.ts";
+import { PORT, JOIN_TOKEN, RECORD, ROOT, WORLDS_DIR, LIBRARY_DIR, MSG_RATE, FRAME_MS, FRAME_SKIP_BUFFERED, EMBED_PARENT_ORIGIN } from "./config.ts";
 import { type HnSession, agentTokens, aid1JoinIdentity } from "./auth.ts";
 import { globalBans, findBan } from "./moderation.ts";
 import { isAdminId, worldHasOwner, rightsOf, VERB_NEEDS, lockRefusal } from "./rights.ts";
@@ -375,6 +375,11 @@ function admitJoin(c: Client, ws: { send(d: string): void; close(code?: number, 
       return null;
     }
     const w = getWorld(wname);
+    if (msg.guest === true) {
+      auth = null;
+      c.auth = undefined;
+      c.sub = undefined;
+    }
     // Identity: a verified session OWNS the id — the client's msg.id is
     // ignored (the name came from Discord via the home node, and the
     // sub underneath it survives renames).
@@ -390,6 +395,19 @@ function admitJoin(c: Client, ws: { send(d: string): void; close(code?: number, 
       ws.send(JSON.stringify({ type: "error", error: `that name is reserved for the world itself` }));
       ws.close(4004, "reserved name");
       return null;
+    }
+    if (msg.guest === true) {
+      // Check the final normalized identity, never the unsanitized join input.
+      const guestRights = rightsOf(w.state, c.id);
+      const guestGrant = Object.hasOwn(w.state.roles ?? {}, c.id) ? w.state.roles[c.id] : null;
+      if (!guestGrant || guestGrant.sub || !worldHasOwner(w.state) || guestRights.role !== 'visitor' || guestRights.gen || guestRights.fly) {
+        ws.send(JSON.stringify({ type: 'error', error: 'guest entry requires an existing visitor grant' }));
+        ws.close(4003, 'guest admission refused');
+        return null;
+      }
+      c.guestAfterSeq = w.snapSeq + w.entries.length;
+    } else {
+      c.guestAfterSeq = undefined;
     }
     {
     // a bare NAME resolves server-side against the same roster the
@@ -611,6 +629,10 @@ function installJoin(c: Client, w: World) {
 function buildSnapshot(w: World, c: Client) {
     // snapshot = full log replay (folding comes later) + who's present now
     const jp = w.joinPayload();
+    const guestChat = c.guestAfterSeq === undefined ? null
+      : (jp.state.recentChat ?? []).filter((entry) => entry.seq > c.guestAfterSeq!);
+    const entries = c.guestAfterSeq === undefined ? jp.tail
+      : jp.tail.filter((entry) => entry.verb !== 'say' || entry.seq > c.guestAfterSeq!);
     return {
       type: "snapshot",
       world: w.name,
@@ -625,9 +647,9 @@ function buildSnapshot(w: World, c: Client) {
       recording: RECORD,
       // The world as it is, then only what has happened since. A joiner's
       // cost is now the size of the WORLD, not the length of its history.
-      state: jp.state,
+      state: guestChat === null ? jp.state : { ...jp.state, recentChat: guestChat, chatTotal: guestChat.length },
       throughSeq: jp.throughSeq,
-      entries: jp.tail,
+      entries,
       // dialect 3: the sim fold's cut, adopted by the joiner (absent
       // pre-epoch — see joinPayload)
       ...("sim" in jp ? { sim: (jp as { sim?: unknown }).sim } : {}),
@@ -762,7 +784,7 @@ const server = Bun.serve({
           // upgrade) passes without the door key; everyone else needs
           // JOIN_TOKEN as before. Both may be live at once — invite links for
           // the show, Discord login for everyone with the role.
-          const auth = c.auth && c.auth.exp > Date.now() ? c.auth : null;
+          const auth = msg.guest !== true && c.auth && c.auth.exp > Date.now() ? c.auth : null;
           if (!auth && JOIN_TOKEN && String(msg.token ?? "") !== JOIN_TOKEN) {
             ws.send(JSON.stringify({ type: "error", error: "bad or missing join token" }));
             c.ws.close?.(4003, "bad token");
@@ -1124,6 +1146,10 @@ console.log(`eidoverse-worlds sequencer on http://0.0.0.0:${PORT}`);
 console.log(`  library: ${LIBRARY_DIR}`);
 console.log(`  worlds:  ${WORLDS_DIR}`);
 if (!JOIN_TOKEN) console.log("  ⚠ NO JOIN_TOKEN — the door is OPEN. Fine on a tailnet, wrong on a public box.");
+// "The handshake does nothing" has exactly two causes and this line separates
+// them: an unset origin (dormant by design) from a set one the host does not
+// match. Both are invisible from the browser, which stays silent either way.
+console.log(EMBED_PARENT_ORIGIN ? `  embedded by: ${EMBED_PARENT_ORIGIN}` : "  embedded by: nobody (EMBED_PARENT_ORIGIN unset — the frame bridge is dormant)");
 // A fresh clone without the client's install step serves a client that can
 // never wake: the importmap points `three` at client/node_modules, every
 // module import 404s, and the splash used to sit at "waking the engine"
