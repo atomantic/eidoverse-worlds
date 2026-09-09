@@ -3,8 +3,9 @@
 # Run ON the VPS:   ~/eidoverse-worlds/deploy/deploy-vps.sh
 # Or from anywhere: ssh ubuntu@eidoverse.animalabs.ai eidoverse-worlds/deploy/deploy-vps.sh
 #
-# Code comes from git (origin/main). Everything the working tree accumulates
-# at runtime — worlds/, mcpl/tokens.json, mcpl/state.json, assets/ — is
+# Code comes from git (origin/portos -- the deployable fork branch; main is a
+# clean mirror of upstream and is NOT what runs here, see docs/FORK.md).
+# Everything the working tree accumulates at runtime — worlds/, mcpl/tokens.json, mcpl/state.json, assets/ — is
 # gitignored and survives untouched. Assets travel by rsync, not git.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -12,8 +13,9 @@ cd "$(dirname "$0")/.."
 BUN="$HOME/.bun/bin/bun"
 
 before=$(git rev-parse --short HEAD)
-git fetch origin main
-git reset --hard origin/main
+BRANCH="${DEPLOY_BRANCH:-portos}"
+git fetch origin "$BRANCH"
+git reset --hard "origin/$BRANCH"
 after=$(git rev-parse --short HEAD)
 echo "code: $before -> $after"
 
