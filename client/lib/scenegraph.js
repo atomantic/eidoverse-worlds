@@ -31,7 +31,9 @@
 import { THREE } from './core.js';
 import { CONFIG, bus } from './base.js';
 import { entities, entityMeta, comps, avatarMounts } from './world.js';
+import { objectIdentity } from '../../shared/label.js';
 import { state } from './state.js';
+import './objectlabels.js';
 import { materializationStatus, retryMaterialization } from './realize/models.js';
 import { editorsFor } from './inspect.js';
 import './lights.js';   // for its registered light editor (world.js pulls it in anyway)
@@ -108,8 +110,7 @@ function paintScene(force = false) {
   const rows = [];
   const row = (id, depth) => {
     const meta = entityMeta.get(id) ?? state.st.entities[id];
-    const short = (meta?.lib ?? meta?.kind ?? '?').split('/').pop().replace('.glb', '')
-      .split('_').slice(0, 3).join(' ');
+    const short = objectIdentity({ id, ...meta, comp: comps.get(id) }, state.st.assets).name;
     const status = materializationStatus(id);
     const badges = [...badgesFor(id), status?.label ?? ''];
     const scripts = behaviorRows.filter((b) => b.attach === id).map((b) => `📜${b.id}`);
