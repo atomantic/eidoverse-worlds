@@ -587,7 +587,8 @@ function slabT(o, d, box, far) {
 }
 
 /** Nearest blocking distance along origin+dir, within `far`; null = clear.
- *  camGhost entries (gizmos, placeholders) never block. */
+ *  camGhost entries never block. Contextual-use rays can exclude their target,
+ *  including its owned structure colliders; camera rays omit that argument. */
 export function raySegment(origin, dir, far, excludeId = null) {
   let bestT = Infinity;
   const ex = origin.x + dir.x * far, ez = origin.z + dir.z * far;
