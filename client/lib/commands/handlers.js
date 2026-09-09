@@ -29,6 +29,8 @@ import { setMyReach, clearMyReach } from '../reachnet.js';
 import { SIM_ID } from '../../../shared/sim.js';
 import { canonicalPoint, CONTACT_POINTS } from '../../../shared/contact.js';
 import { TOUCH_GAP } from '../../../shared/reachwire.js';
+import { readFrameIdentityName } from '../../../shared/portosframe.js';
+import { portosSession, requestIdentityRename } from '../portosframe.js';
 
 register('help', () => toggleHelp());
 // Flight's own diagnostic, in the chat log where a person can read it and
@@ -369,11 +371,18 @@ register('goto', (arg) => {
   flashHint(`${target.id} is ${p.distanceTo(myState.pos).toFixed(0)}m away, bearing ${bearingTo(p)}`);
 });
 
-register('rename', () => {
-  // chat.js emitted this command for years with nobody subscribed (§14.1
-  // found bug) — a silently dead command. Until mid-session renames exist,
-  // say so instead of saying nothing.
-  logChat('*', "renaming mid-session isn't supported yet — set your name at the door (clear ew-name in devtools to re-open it)");
+register('rename', (arg) => {
+  const name = readFrameIdentityName(arg);
+  if (name === null) {
+    return logChat('*', 'usage: /name <new name> — use 1–64 characters without control characters');
+  }
+  if (requestIdentityRename(name)) {
+    return logChat('*', `"${name}" is staged in World Design — save there to leave and re-enter under the new name`);
+  }
+  if (portosSession()) {
+    return logChat('*', 'this embedded host cannot change your identity — use its identity settings, then re-enter the world');
+  }
+  return logChat('*', 'renaming is unavailable in this standalone or guest session — keep the identity granted to this session, or use your home host\'s identity settings');
 });
 
 function bearingTo(p) {
