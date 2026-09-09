@@ -96,3 +96,38 @@ An Edge smoke test of this upstream adaptation drove the real controller and
 avatar with simulated standard-pad input: movement, camera rotation, jump,
 disconnect clearing, and exactly one server-logged `use` across 120 held polls
 passed, with no page JavaScript errors.
+
+## Fork-only: gamepad under the PortOS frame
+
+Carried here, not offered upstream (see `docs/UPSTREAM-FLAGS.md` §6).
+
+PortOS retains destination selection, guest admission, and the departure
+handshake. Gamepad use calls the same contextual action as E or touch, which
+only requests the existing validated host route — no travel URL or credential
+is ever accepted by the input layer. PortOS's main Eidoverse iframe already
+declares `gamepad`; its guest iframe must also delegate it for cross-origin
+guest worlds (host-side work, outside this repository).
+
+Fork-only suites, each in a separate Bun process:
+
+```sh
+bun tools/departure-test.ts
+bun tools/portos-frame-test.ts
+bun tools/portos-frame-dom-test.ts
+```
+
+For physical acceptance under the frame, run `bun tools/interaction-preview.ts`.
+It starts disposable worlds on loopback ports 8993/8994 with the frame contract
+and `allow="gamepad"`, seeding no installed world. Open the printed parent URL,
+then exercise movement, look, jump, and held use at the pod; the parent must
+report that the source departed before joining the destination. Test the
+renderer directly on port 8993 with the same synthetic fixture key and world
+`interaction-a` — the pod provides `Test object interaction`, an ordinary
+logged `use`. This fixture exercises the PortOS frame contract, not a deployed
+PortOS host.
+
+Physical acceptance on Windows, 2026-09-07: Edge exposed
+`Xbox 360 Controller (XInput STANDARD GAMEPAD)` with standard mapping. The
+frame reported `PASS: departed source, entered destination, one human world`,
+the source observer confirmed departure, and no page JavaScript errors
+occurred.

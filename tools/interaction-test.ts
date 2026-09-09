@@ -9,8 +9,8 @@ GlobalRegistrator.register({ url: 'https://renderer.example/' });
 const base = `${import.meta.dir}/../client/lib/`;
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
 camera.position.set(0, 2, 5); camera.lookAt(0, 1, 0); camera.updateMatrixWorld();
-let action: Function, occluded = false, overlay = false;
-const uses: any[] = [];
+let action: Function, occluded = false, hosted = true, overlay = false;
+const uses: any[] = [], visits: any[] = [];
 const myState = { pos: new THREE.Vector3(0, 0, 1) };
 const state = { st: { entities: { lamp: { comp: { interaction: { action: 'toggle', label: 'Toggle lamp' } } } } } };
 const entities = new Map([['lamp', new THREE.Group()]]);
@@ -30,6 +30,8 @@ mock.module(base+'state.js', () => ({ state }));
 mock.module(base+'world.js', () => ({ entities }));
 mock.module(base+'colliders.js', () => ({ raySegment: () => occluded ? 0.5 : null }));
 mock.module(base+'net.js', () => ({ net: { joined: true }, sendVerb: (...args: any[]) => uses.push(args) }));
+mock.module(base+'portosframe.js', () => ({ portosSession: () => hosted,
+  frameRouteFor: (e: any) => e.comp.portos?.route, openInPortos: (...args: any[]) => visits.push(args) }));
 const { tickInteraction } = await import('../client/lib/interaction.js');
 const press = () => action('use');
 tickInteraction(100);
@@ -79,4 +81,15 @@ button.click();
 assert.notEqual(document.activeElement, button, 'clicking the prompt never leaves it focused');
 assert.equal(uses.length, before, 'a blocked prompt still sends nothing');
 
+// Host travel: a portos-visit component routes to the host instead of the world.
+state.st.entities.lamp = { comp: { portos: { action: 'visit', route: '/eidoverse' }, label: { name: 'Example pod' } } } as any;
+entities.get('lamp')!.visible = false;
+building = new THREE.Group();
+tickInteraction(700); assert.match(button.textContent!, /Example pod/);
+assert.equal(button.hidden, false, 'a visible native chamber remains usable with its model anchor hidden');
+const beforeTravel = uses.length;
+button.click();
+assert.deepEqual(visits, [['lamp', '/eidoverse']]);
+assert.equal(uses.length, beforeTravel, 'travel never sends a world verb');
+hosted = false; tickInteraction(800); assert(button.hidden, 'travel needs a host session');
 console.log('Interaction control checks passed');

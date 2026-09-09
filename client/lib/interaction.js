@@ -10,6 +10,7 @@ import { entities } from './world.js';
 import { structureObject } from './realize/structure.js';
 import { raySegment } from './colliders.js';
 import { net, sendVerb } from './net.js';
+import { frameRouteFor, portosSession, openInPortos } from './portosframe.js';
 import { interactionAction } from '../../shared/interaction.js';
 import { requestAction, usePrompt, setInputAvailable, noteInput, typing } from './input.js';
 
@@ -28,8 +29,8 @@ function choose() {
   camera.updateMatrixWorld();
   let best = null, nearest = 3;
   eye.copy(myState.pos); eye.y += 1;
-  for (const id in state.st.entities) {
-    const action = interactionAction(state.st.entities[id]);
+  for (const [id, entity] of Object.entries(state.st.entities)) {
+    const action = interactionAction(entity, portosSession());
     const object = structureObject(id) || entities.get(id);
     if (!action || !object?.visible || object.userData.placeholder) continue;
     object.updateWorldMatrix(true, false);
@@ -53,7 +54,8 @@ function activate() {
   // Re-evaluate at the actual press: a stale prompt cannot use a moved object.
   const target = choose();
   if (!target) return;
-  sendVerb('use', { id: target.id, action: target.action });
+  if (target.travel) openInPortos(target.id, frameRouteFor(state.st.entities[target.id]));
+  else sendVerb('use', { id: target.id, action: target.action });
 }
 
 bus.on('input-action', action => { if (action === 'use') activate(); });
