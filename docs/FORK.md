@@ -70,3 +70,16 @@ through `main` instead, and re-merging them only manufactures conflicts.
 `git config rerere.enabled true` is worth setting: the same handful of
 conflicts (client/main.js system registration, server/config.ts exports,
 client/lib/objectlabels.js) recur on every sync, and rerere replays them.
+
+## After every sync, before deploying
+
+```sh
+bun tools/client-boot-check.mjs
+```
+
+Nothing imports `client/main.js` — it is the browser's entry point, so a merge
+that duplicates an import there passes every test in `tools/` and then fails at
+`the engine failed to load` in the browser. This walks the client module graph
+the way the browser resolves it (`client/` is the web root, so `../../shared/x.js`
+from `client/lib/realize/` is `/shared/x.js`) and fails on duplicate top-level
+bindings. It caught exactly that break on the first portos deploy.

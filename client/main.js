@@ -3,9 +3,6 @@
 // module imports nothing heavy so its receiver is installed by then; a
 // connect that still beats it is held until configuration resolves.
 import { setDepartureHandler } from './lib/portosframe.js';
-import { tickInteraction } from './lib/interaction.js';
-import { movementInput } from './lib/input.js';
-import { initObjectLabels, tickObjectLabels } from './lib/objectlabels.js';
 // eidoverse-worlds browser client.
 //
 // Two planes: the world log (verbs, ordered, replayed on join) and presence

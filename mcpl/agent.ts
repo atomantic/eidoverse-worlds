@@ -1,4 +1,3 @@
-import { objectIdentity } from '../shared/label.js';
 // WorldAgent — a headless world participant: the MCPL's body.
 // Owns its avatar exactly like the browser client owns a human's: simulated
 // position/yaw/speed ticked at 10Hz, pose intent streamed to the sequencer,
