@@ -672,7 +672,7 @@ const server = Bun.serve({
     // endpoint, first match wins, in exactly the order the if-chain had.
     // /ws upgrades inside its row: a successful upgrade returns no Response,
     // same contract as before.
-    const managed = await managedVisitors.handle(req);
+    const managed = await managedVisitors.handle(req, srv.requestIP(req)?.address ?? '');
     if (managed) return managed;
     return route(req, srv);
   },
