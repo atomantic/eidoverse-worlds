@@ -458,6 +458,7 @@ function noteStalePresence(id) {
 
 async function handle(msg) {
   switch (msg.type) {
+    case 'managed-flies': bus.emit('managed-flies', msg); return;
     case 'snapshot': return onSnapshot(msg);
 
     case 'your-rights': {

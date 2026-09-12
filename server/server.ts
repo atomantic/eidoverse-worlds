@@ -28,6 +28,8 @@ import { warmBoxes, worldLibs } from "./boxes.ts";
 // The HTTP surface — one route table, /upload behind it in upload.ts (§15,
 // 7c). fetch() below delegates; avatarRoster rides back for the join
 // snapshot, pendingSnaps for the renderer's snap-result replies.
+import { createManagedVisitors } from "./managed-visitors.ts";
+import { worldExists } from "./world.ts";
 import { route, avatarRoster } from "./routes.ts";
 import { registerSystem, startTick } from "./tick.ts";
 import { MESSAGES, pendingWhispers, whisperKey } from "./messages.ts";
@@ -653,6 +655,15 @@ function buildSnapshot(w: World, c: Client) {
     };
 }
 
+const managedVisitors = createManagedVisitors({
+  token: process.env.PORTOS_EIDOVERSE_VISITOR_TOKEN ?? '',
+  allowedWorlds: (process.env.PORTOS_EIDOVERSE_VISITOR_WORLDS ?? '').split(',').map(s => s.trim()).filter(Boolean),
+  exists: worldExists,
+});
+registerSystem({ name: 'managed-visitor-presence', everyMs: 100, fn: () => {
+  if (managedVisitors.enabled()) for (const [id, world] of worlds) world.broadcast(managedVisitors.publicState(id));
+} });
+
 const server = Bun.serve({
   port: PORT,
   hostname: "0.0.0.0",
@@ -661,6 +672,8 @@ const server = Bun.serve({
     // endpoint, first match wins, in exactly the order the if-chain had.
     // /ws upgrades inside its row: a successful upgrade returns no Response,
     // same contract as before.
+    const managed = await managedVisitors.handle(req, srv.requestIP(req)?.address ?? '');
+    if (managed) return managed;
     return route(req, srv);
   },
   websocket: {
