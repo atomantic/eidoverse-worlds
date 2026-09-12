@@ -20,7 +20,7 @@ try {
   await new Promise<void>((resolve, reject) => { socket!.onopen = () => { socket!.send(JSON.stringify({ type: 'join', id: 'scratch-observer', world: 'managedscratch', token: 'scratch-door', spectate: true })); resolve(); }; socket!.onerror = reject; });
   for (let i = 0; i < 50 && !messages.some(m => m.type === 'snapshot'); i++) await Bun.sleep(50);
   assert(messages.some(m => m.type === 'snapshot'), 'observer joined scratch world');
-  const response = await fetch(`${base}/admissions`, { method: 'POST', headers: { authorization: `Bearer ${token}` }, body: JSON.stringify({ version: 1, appId: 'test', individualId: 'one', individualSessionId: 'neural', worldId: 'managedscratch', body: 'fly-v1', ttlMs: 1000 }) });
+  const response = await fetch(`${base}/admissions`, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'X-Managed-Visitor-Deadline': String(Date.now() + 1000) }, body: JSON.stringify({ version: 1, appId: 'test', individualId: 'one', individualSessionId: 'neural', worldId: 'managedscratch', body: 'fly-v1', ttlMs: 1000 }) });
   assert.equal(response.status, 200); const admission = await response.json();
   for (let i = 0; i < 20 && !messages.some(m => m.type === 'managed-flies' && m.visitors.length); i++) await Bun.sleep(50);
   const presence = messages.find(m => m.type === 'managed-flies' && m.visitors.length);
