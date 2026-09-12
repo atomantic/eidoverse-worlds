@@ -23,6 +23,7 @@ import { initCauses } from './lib/realize/causes.js';
 // side-effecting: the `particles` component's host wires itself to the comp
 // and entity buses on import (it has no boot step of its own)
 import './lib/emitters.js';
+import { updateManagedFlies } from './lib/managed-flies.js';
 import { tickMotion } from './lib/motion.js';
 import {
   myState, updateMe, updateSpectator, setCamYaw, setPosture, togglePhotoMode,
@@ -437,6 +438,7 @@ registerSystem('bodydrag', (dt, t, now) => updateBodyDrag(dt, now)); // before r
                                  // the takeover pose lands in this frame's avatar.update
 registerSystem('physobj', (dt, t, now) => tickPhysObj(dt, now)); // entity leases I hold
 registerSystem('mods', (dt, t, now) => tickMods(dt, now));       // 🧩 runtime scripts
+registerSystem('managed-flies', () => updateManagedFlies());
 registerSystem('remotes', (dt, t, now) => updateRemotes(dt, now));
 registerSystem('gaze', (dt, t, now) => updateGaze(myState.pos, getMe(), CONFIG.name, now));
 registerSystem('build', () => updateBuild());
