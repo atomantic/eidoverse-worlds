@@ -208,6 +208,12 @@ function contentType(path: string): string {
   if (path.endsWith(".md")) return "text/markdown; charset=utf-8";
   if (path.endsWith(".png")) return "image/png";
   if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+  if (path.endsWith(".webp")) return "image/webp";
+  if (path.endsWith(".mp3")) return "audio/mpeg";
+  if (path.endsWith(".ogg") || path.endsWith(".opus")) return "audio/ogg";
+  if (path.endsWith(".wav")) return "audio/wav";
+  if (path.endsWith(".webm")) return "audio/webm";
+  if (path.endsWith(".m4a")) return "audio/mp4";
   if (path.endsWith(".ktx2")) return "image/ktx2";
   if (path.endsWith(".wasm")) return "application/wasm";
   if (path.endsWith(".hdr")) return "application/octet-stream";
@@ -634,6 +640,35 @@ const ROUTES: Route[] = [
       const r = await requestSnap(w, follow, url.searchParams.get("view") ?? "first");
       if (!r.ok) return new Response(r.err, { status: r.status });
       return new Response(r.png, { headers: { "content-type": "image/png", "cache-control": "no-store" } });
+    },
+  },
+  {
+    // Discovery for travel: which worlds this sequencer fronts, and who is
+    // embodied where. Union of LOADED worlds and on-disk worlds with a log —
+    // never creates one (getWorld is not called). Same trust level as the
+    // world log: public reads. Presence names are the same ids every join
+    // snapshot already hands out; spectators and renderers appear as nothing
+    // here exactly as they do in-world.
+    match: (u) => u.pathname === "/worlds",
+    handler: () => {
+      const names = new Set<string>(worlds.keys());
+      try {
+        for (const n of readdirSync(WORLDS_DIR)) {
+          if (/^[a-z0-9_-]{1,64}$/i.test(n) && existsSync(join(WORLDS_DIR, n, "log.jsonl"))) names.add(n);
+        }
+      } catch { /* no worlds dir yet: only loaded worlds */ }
+      const out = [...names].sort().map((name) => {
+        const w = worlds.get(name);
+        const present = w ? [...w.clients].filter((c) => !c.spectator && !c.superseded) : [];
+        return {
+          name,
+          loaded: !!w,
+          people: present.filter((c) => !c.agent).map((c) => c.id),
+          agents: present.filter((c) => c.agent).map((c) => c.id),
+        };
+      });
+      return new Response(JSON.stringify({ worlds: out }),
+        { headers: { "content-type": "application/json", "cache-control": "no-store" } });
     },
   },
   {
