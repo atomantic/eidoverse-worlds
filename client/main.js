@@ -34,6 +34,7 @@ import { initCauses } from './lib/realize/causes.js';
 import './lib/emitters.js';
 import './lib/pictures.js';
 import { tickSounds } from './lib/sounds.js';   // the sound comp: positional audio from an entity
+import { updateManagedFlies } from './lib/managed-flies.js';
 import { tickMotion } from './lib/motion.js';
 import {
   myState, updateMe, updateInput, updateSpectator, setCamYaw, setPosture, togglePhotoMode,
@@ -558,6 +559,7 @@ registerSystem('bodydrag', (dt, t, now) => updateBodyDrag(dt, now)); // before r
                                  // the takeover pose lands in this frame's avatar.update
 registerSystem('physobj', (dt, t, now) => tickPhysObj(dt, now)); // entity leases I hold
 registerSystem('mods', (dt, t, now) => tickMods(dt, now));       // 🧩 runtime scripts
+registerSystem('managed-flies', () => updateManagedFlies());
 registerSystem('remotes', (dt, t, now) => updateRemotes(dt, now));
 registerSystem('gaze', (dt, t, now) => updateGaze(myState.pos, getMe(), CONFIG.name, now));
 registerSystem('build', () => updateBuild());
