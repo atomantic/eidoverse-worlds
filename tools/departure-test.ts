@@ -3,6 +3,10 @@
 import { strict as assert } from 'node:assert';
 import { GlobalRegistrator } from '@happy-dom/global-registrator';
 import { mock } from 'bun:test';
+// The lifecycle under test never talks to a server. A real fetch (the
+// happy-dom document, or a module that warms a route at load) refuses the
+// connection and, once this file replaces setTimeout, never settles.
+globalThis.fetch = (async () => ({ ok: false, status: 404, json: async () => null, text: async () => '' })) as typeof fetch;
 GlobalRegistrator.register({ url: 'https://renderer.example/' });
 const stubs = await import('./remotes-stubs.mjs');
 for (const name of ['core', 'assets', 'world', 'chat', 'fp_view', 'boot', 'ui', 'avatar']) {
@@ -52,3 +56,6 @@ second.finish(); await leaving;
 assert.equal(done, true);
 assert.equal(timers.size, 0, 'closing deliberately never schedules a reconnect');
 console.log('World departure lifecycle checks passed');
+// setTimeout is the test double for the rest of the process, so nothing
+// drained by a timer can end the event loop. The checks above are the result.
+process.exit(0);

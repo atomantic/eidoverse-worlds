@@ -1,6 +1,9 @@
 /** bun tools/ground-sit-test.ts — real seat selector, stubbed browser boundaries. */
 import { mock } from 'bun:test';
 import assert from 'node:assert/strict';
+import { GlobalRegistrator } from '@happy-dom/global-registrator';
+// localbody pulls input.js, which registers document listeners at load.
+GlobalRegistrator.register({ url: 'https://renderer.example/' });
 const base = import.meta.dir + '/../client/lib/';
 class Vector3 { x=0; y=0; z=0; set(x:number,y:number,z:number){Object.assign(this,{x,y,z});return this;} }
 const noop = () => {};
@@ -9,14 +12,14 @@ const comps = new Map();
 const myState = { pos:new Vector3(), yaw:0 };
 mock.module(base+'core.js', () => ({ THREE:{Vector3} }));
 mock.module(base+'base.js', () => ({CONFIG:{name:'self'},bus:{on:noop}}));
-mock.module(base+'controller.js', () => ({myState,updateFollowCamera:noop,setPosture:noop,keys:new Set(),setSeatHook:noop}));
+mock.module(base+'controller.js', () => ({myState,updateFollowCamera:noop,setPosture:noop,keys:new Set(),setSeatHook:noop,setMountedHook:noop}));
 mock.module(base+'world.js', () => ({avatarMounts:new Map(),mountTransform:noop,comps,
   socketWorldPos:(id:string,_slot:string,v:Vector3)=>v.set(comps.get(id).x,0,0)}));
 mock.module(base+'net.js', () => ({sendVerb:(...args:any[])=>sent.push(args),sendAnim:noop}));
 mock.module(base+'bodysim.js', () => ({makeRagdoll:noop}));
 mock.module(base+'ragdoll.js', () => ({jointPositions:noop}));
 mock.module(base+'bodydrag.js', () => ({initBodyDrag:noop,beingDragged:()=>false,revokeDragged:noop}));
-mock.module(base+'ui.js', () => ({toast:noop,flashHint:noop,setAmbientHint:noop}));
+mock.module(base+'ui.js', () => ({toast:noop,flashHint:noop,setAmbientHint:noop,isOverlayOpen:()=>false}));
 mock.module(base+'consent.js', () => ({posable:true,pushable:true}));
 mock.module(base+'reachnet.js', () => ({clearMyReach:noop}));
 mock.module(base+'mybody.js', () => ({getMe:()=>null}));

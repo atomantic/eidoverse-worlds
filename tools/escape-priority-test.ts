@@ -57,6 +57,12 @@ mock.module(base + 'world.js', () => ({
   entities, entityMeta: new Map(), comps: new Map(), editHolds: new Set(),
 }));
 mock.module(base + 'net.js', () => ({ net: { myId: 'me' }, sendVerb() {}, sendDrag() {} }));
+mock.module(base + 'water.js', () => ({ waterLevel: () => null, waterAt: () => null, waveTime: () => 0 }));
+mock.module(base + 'watervolumes.js', () => ({ waterAt: () => null, waterTime: () => 0, movementBounds: () => null }));
+mock.module(base + 'traversal.js', () => ({
+  nearbyTraversal: () => null, startTraversal: () => false, stepTraversal: () => {},
+  traversing: () => false, cancelTraversal: () => {},
+}));
 mock.module(base + 'scenegraph.js', () => ({ sceneSelect() {} }));
 mock.module(base + 'seatedit.js', () => ({
   refreshSeatGizmos() {}, resetSeats() {}, armSeatPlacement() {},

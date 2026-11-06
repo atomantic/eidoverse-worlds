@@ -81,7 +81,7 @@ assert(describeParticles({preset:'fire',part:'missing'}).includes('fallback if u
 // Lint remains advisory and uses the rendered-node summary (orphans excluded).
 const dir = mkdtempSync(join(tmpdir(), 'particle-parts-'));
 writeFileSync(join(dir, 'fixture.glb'), 'fixture');
-mock.module(`${import.meta.dir}/../server/config.ts`, () => ({OPT_DIR:dir, LIBRARY_DIR:dir}));
+mock.module(`${import.meta.dir}/../server/config.ts`, () => ({OPT_DIR:dir, LIBRARY_DIR:dir, LADDER:[dir]}));
 mock.module(`${import.meta.dir}/../server/geometry.ts`, () => ({ summarizeGlb: async () => ({nodeNames:['wax'], nodes:[], orphans:['orphan']}) }));
 const {lintParticles} = await import('../server/lint.ts');
 const findings: any[] = [];
