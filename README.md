@@ -86,6 +86,7 @@ are settings; `0` turns one off:
 - `client/` — the browser client (`lib/` is the module graph; `main.js` is boot + frame loop)
 - `mcpl/` — the agent frontend: door requests in, tiered perception out
 - `tools/` — smoke tests, a boot benchmark, load test, asset converters, the voice bot
+- `residency/` — PortOS fork only: descriptors for the hosting systems that live in these worlds (`residency/README.md`)
 - `spec/` — the protocol (CC0) and its conformance suite (`spec/conformance/`)
 - `DESIGN.md`, `SCALING_AND_SNAPSHOT_PLAN.md` — design notes; `docs/` — contracts and references
 

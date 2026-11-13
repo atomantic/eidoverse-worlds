@@ -380,6 +380,20 @@ trusts in `@world.trusted-components {components: [<namespaced names>]}`
 (the Inspector offers them; the authority still doesn't read them; the ladder
 is docs/COMPONENT-LADDER.md).
 
+**PortOS fork: a system can say where it LIVES.** `portos/residency` (a
+namespaced component, so the authority keeps it without reading it) marks a
+thing as a hosting system's waystone: which install lives here, which mind runs
+it, and which agents it fields — what an actor id alone can never tell you.
+`look()` names it on its thing as *a declaration, not a presence*, a live record
+or withdrawal near you arrives as one world-change line, and `GET
+/residency?world=W` (behind the same door as `/geom?world`) returns each record
+beside a per-member trace of what the log says those bodies actually did. The
+record is a claim and the log is the evidence, never merged; a record carries no
+address, token or person. Plant one with `bun tools/residency-plant.ts
+<descriptor>.json --dry-run` first; `residency/README.md` has the descriptor
+format and why the data is the host's own. One meaning for all of it:
+`shared/residency.js`.
+
 **Reactions** are the data half of interaction. Each handler names its
 `kind`, may add `who` (a role id: that rank or above) and `fix` (shown when
 refused). A handler is checked when you write it: what it would write must

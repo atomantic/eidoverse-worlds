@@ -120,6 +120,9 @@ import * as OP from "../shared/requests.js";
 // a renderer client and a resident who perceives by reading must agree about
 // what is burning (#25's shared-facts boundary).
 import { describeParticles, emitterTransition, transitionLine } from "../shared/particles.js";
+// PortOS fork: the `portos/residency` component's meaning — who LIVES here, as opposed to who is standing here right
+// now (shared/residency.js; residency/README.md). Never offered upstream (#164 withdrawn; docs/FORK.md).
+import { RESIDENCY_COMPONENT, describeResidency, residencyTransition, residencyLine } from "../shared/residency.js";
 import { saysOf } from "../shared/says.js";
 import { readOut, openAction } from "../shared/a11y.js";
 import { quoted } from "../shared/text.js";
@@ -1870,6 +1873,8 @@ export class WorldAgent {
         // particles:<name>) is lit in that instant, and narrates as lighting it, as a particles set would; otherwise a build
         if (live && now?.particles != null) { const fx = this.eff(id, this.serverNow()); if (fx.ok) this.noteEmitter(actor, id, null, now.particles, fx.pos, ts); else { this.noteEffGap(id, fx.why); this.noteBuild(actor, now?.pos); } }
         else if (live) this.noteBuild(actor, now?.pos);
+        // a marker made with its record already on it (one create, as the planter writes it) is a residency recorded
+        if (live && now?.[RESIDENCY_COMPONENT] != null) this.noteResidencyAt(actor, id, null, now[RESIDENCY_COMPONENT], ts);
         this.trackSupport(this.syncSupport(id));   // a placed thing is a thing bodies can rest on (#17)
         if (this.mounts.has(id)) this.dropSupport(id);   // …unless it rides a parent (it collides as the parent)
         break;
@@ -1881,6 +1886,7 @@ export class WorldAgent {
         // …and removing a burning thing puts its emitter out
         if (live && was?.particles != null) this.noteEmitter(actor, id, was.particles, null, was?.pos, ts);
         else if (live) this.noteBuild(actor, was?.pos);
+        if (live && was?.[RESIDENCY_COMPONENT] != null) this.noteResidency(actor, id, was[RESIDENCY_COMPONENT], null, was?.pos, ts);
         this.dropSupport(id);
         break;
       case "parent":
@@ -1893,6 +1899,8 @@ export class WorldAgent {
           if (fx.ok) this.noteEmitter(actor, id, was?.particles ?? null, now?.particles ?? null, fx.pos, ts);
           else this.noteEffGap(id, fx.why);
         }
+        // a residency recorded, revised or withdrawn is news of the same kind, and rarer by nature: no coalescing window
+        if (comp === RESIDENCY_COMPONENT && live) this.noteResidencyAt(actor, id, was?.[RESIDENCY_COMPONENT] ?? null, now?.[RESIDENCY_COMPONENT] ?? null, ts);
         // a motion moves its support, and a collider override changes the policy its walking collider was fitted with
         if (comp === "motion" || comp?.startsWith("motion:") || comp === "collider") this.trackSupport(this.syncSupport(id));
         break;
@@ -1964,6 +1972,24 @@ export class WorldAgent {
       this.onEvent?.({ ts, kind: "world-change", who: actor, text: line });
     }
     this.openEmitterWindow(id, actor, after);
+  }
+
+  /** PortOS fork: a live `portos/residency` record / revision / withdrawal near this body, as one ambient world-change
+   *  percept. Same gates as noteEmitter (self-echo, radius, effective position), no coalescing: an instance declaring
+   *  where it lives happens once and then almost never, so there is no slider to fold. */
+  private noteResidencyAt(actor: string | undefined, id: string, before: unknown, after: unknown, ts: number) {
+    const fx = this.eff(id, this.serverNow());
+    if (fx.ok) this.noteResidency(actor, id, before, after, fx.pos, ts);
+    else this.noteEffGap(id, fx.why);
+  }
+  private noteResidency(actor: string | undefined, id: string, before: unknown, after: unknown,
+                        pos: number[] | undefined, ts: number) {
+    if (!actor || actor === this.name || actor === "world") return;
+    if (pos && Math.hypot(pos[0] - this.pos.x, pos[2] - this.pos.z) > this.activityRadiusM) return;
+    const line = residencyLine(actor, this.refName(id), residencyTransition(before, after));   // as look names it (R 10-17)
+    if (!line) return;
+    this.act30.builds++;              // it feeds the activity digest like any build
+    this.onEvent?.({ ts, kind: "world-change", who: actor, text: line });
   }
 
   private openEmitterWindow(id: string, actor: string, announced: unknown) {
@@ -5676,6 +5702,10 @@ export class WorldAgent {
       // or contact: separate authored components would provide those, and a
       // resident who reads "warm" acts on it.
       if (c.particles) aff.push(describeParticles(c.particles));
+      // PortOS fork: a residency marker says which hosting system considers this world somewhere it LIVES, and which
+      // agents it fields: the one thing an actor id alone can never tell you. Read as a declaration, never as a
+      // presence: the log, not the record, says who has actually acted here (GET /residency).
+      if (c[RESIDENCY_COMPONENT] != null) aff.push(describeResidency(c[RESIDENCY_COMPONENT]));
       // A picture is named by what its author SAID it shows, on the part that
       // carries it — never by its pixels. Rung 1 of the projector ladder.
       // batch 2: a story, a sign, a picture, a sound and a look-at say what they say through the ONE describer the authority's
@@ -5704,7 +5734,7 @@ export class WorldAgent {
       // structure component buys: `components: structure` would be true and
       // useless, where "a building: 2 rooms, 14 walls, 1 door" is actionable.
       if (c.structure) { try { aff.push(describeStructure(c.structure)); } catch { /* a broken house is not a broken look() */ } }
-      const spoken = ["model", "parent", "sockets", "socket", "reactions", "motion", "particles", "picture", "material", "captions", "sound", "lock", "structure", "label", "hidden", "description", "openable", "story", "text", "look-at"];
+      const spoken = ["model", "parent", "sockets", "socket", "reactions", "motion", "particles", "picture", "material", "captions", "sound", "lock", "structure", "label", "hidden", "description", "openable", "story", "text", "look-at", RESIDENCY_COMPONENT];
       if (copy) spoken.push("blueprint");
       if (lit) spoken.push("light");   // described above; a malformed one stays listed
       if (col === "mesh" || col === "exact" || col === "box") spoken.push("collider");

@@ -24,7 +24,10 @@ Constraints, on purpose:
   no-store policy as client code.
 
 Residents: `forecast.js` (day clock, weather policy, the sky fold),
-`particles.js` (the `particles` component's meaning), and `protocol/` — the
+`particles.js` (the `particles` component's meaning), `residency.js` (PortOS fork
+only: the namespaced `portos/residency` component's meaning — which hosting
+system lives in a world, which agents it fields, and what the log says they
+actually did; see `../residency/README.md`), and `protocol/` — the
 protocol core: `protocol/fold.js` (the reference fold, conformance-tested against
 `spec/conformance/` by `bun tools/protocol/run.ts conformance`), `protocol/authority.js`
 (the authority and its one gate), `protocol/componentspec.js` (the component registry),

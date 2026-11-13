@@ -37,6 +37,10 @@ const nativeLogin = createNativeLogin({
 });
 import { resolveLibFile, libraryFile, libraryRel } from "./libfile.ts";
 import { summarizeGlb } from "./geometry.ts";
+// PortOS fork: GET /residency reads the same model the mcpl agent perceives with and the planter writes
+// (shared/residency.js; residency/README.md). Never offered upstream (#164 withdrawn; docs/FORK.md).
+import { projectResidencies } from "../shared/residency.js";
+import { directoryFor } from "./directory.ts";
 import { vrmHeightFor } from "./vrmheight.ts";
 import { checkFile, checkScale, CheckRefused } from "./buildcheck-queue.ts";
 import { worlds, getWorld, worldDirNamed, type World } from "./world.ts";
@@ -640,6 +644,32 @@ const ROUTES: Route[] = [
         out.push({ ...record(eid, e), ...(sum ? { bbox: sum.bbox, tris: sum.tris } : {}) });
       }
       return j({ world: wname, entities: out });
+    },
+  },
+  {
+    match: (u) => u.pathname === "/residency",
+    handler: ({ req, url, srv }) => {
+      // PortOS fork. Who LIVES here: the projection a hosting system polls to see its own marker, and anyone else polls
+      // to see whose machines consider this world an address. Behind the same door as /geom?world (a world closed to
+      // the caller reads as one that doesn't exist); on an open box, public, as the world log is.
+      //
+      //   /residency?world=W              every residency in W, + traces
+      //   /residency?world=W&history=N    how many of the newest log entries the traces read (≤ 20000)
+      //
+      // The record is the CLAIM and the trace is the EVIDENCE, and they stay in separate fields: anyone with builder
+      // rights can name anyone in a record, while nobody can write someone else's `actor` into the log.
+      const j = (o: unknown, status = 200) =>
+        new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json" } });
+      const wname = url.searchParams.get("world") ?? "";
+      if (!mayRead(req)) return unauthorized();
+      // read-only: answer for loaded or on-disk worlds, never create one
+      if (!/^[a-z0-9_-]{1,64}$/i.test(wname) || !knownWorld(wname) || !visibleTo(doorFor(wname), httpVisitor(req, srv))) return j({ error: "no such world" }, 404);
+      const w = getWorld(wname);
+      const dir = directoryFor(WORLDS_DIR), seen = new Map<string, string>();
+      // an opaque identity → the name its body wears (§2.3), once per actor in the window read
+      const nameOf = (a: string) => { let n = seen.get(a); if (n === undefined) { n = dir.names([a])[a] ?? a; seen.set(a, n); } return n; };
+      const limit = Math.min(20_000, Math.max(1, Number(url.searchParams.get("history") ?? 2000) || 2000));
+      return j(projectResidencies({ entities: w.state.entities as Record<string, unknown>, entries: w.log.live.entries, nameOf, world: wname, limit }));
     },
   },
   {
