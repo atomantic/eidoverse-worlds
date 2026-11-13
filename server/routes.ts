@@ -916,7 +916,7 @@ const ROUTES: Route[] = [
         // Fork-only: independently versioned renderer capabilities
         // (docs/portos-frame.md). The frame handshake, not this report, is
         // what proves a loaded browser bundle speaks them.
-        capabilities: { ...FRAME_CAPABILITIES },
+        capabilities: { ...FRAME_CAPABILITIES, guestEntry: 1 },   // guestEntry: docs/portos-guests.md
         ...(process.env.WORLD_INSTANCE_NONCE ? { instance: process.env.WORLD_INSTANCE_NONCE } : {}),
       }),
       { headers: { "content-type": "application/json", "cache-control": "no-store" } }),

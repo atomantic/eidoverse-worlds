@@ -471,7 +471,8 @@ function admitJoin(c: Client, ws: { send(d: string): void; close(code?: number, 
       const at = agentTokens();
       let account: string | null = auth && c.sub ? c.sub : null;
       let agentName: string | null = null;
-      const proven = accountOf(String(msg.agentToken ?? ""));
+      // fork-only: a guest visit proves no account, by any credential (docs/portos-guests.md)
+      const proven = msg.guest === true ? null : accountOf(String(msg.agentToken ?? ""));
       if (proven && "refused" in proven) {
         ws.send(JSON.stringify({ type: "error", error: proven.refused }));
         c.ws.close?.(4004, "bad agent credential");
@@ -490,7 +491,7 @@ function admitJoin(c: Client, ws: { send(d: string): void; close(code?: number, 
       }
       // a private door: the account is the one the client keeps (msg.account), else the typed name — so a person can show a
       // new name and stay who they are (R 10-11). Typed, so the door's markup rule holds for it too.
-      if (!account && TRUST_NAMES) { const keep = typeof msg.account === "string" ? nameAtDoor(msg.account.trim().slice(0, LIMITS.ID_LEN), { typed: false }).name : "";
+      if (!account && TRUST_NAMES && msg.guest !== true) { const keep = typeof msg.account === "string" ? nameAtDoor(msg.account.trim().slice(0, LIMITS.ID_LEN), { typed: false }).name : "";
         account = `local:${(keep || c.id).toLowerCase()}`; }
       // a connection that has joined stays who it proved it was: travel keeps the identity; a new one needs a new socket
       if (c.account !== undefined && c.account !== account) {
@@ -964,7 +965,10 @@ const server = Bun.serve({
           // upgrade) passes without the authority key; everyone else needs
           // JOIN_TOKEN as before. Both may be live at once — invite links for
           // the show, Discord login for everyone with the role.
-          const auth = c.auth && c.auth.exp > Date.now() ? c.auth : null;
+          // fork-only (docs/portos-guests.md): a host-admitted guest visit ignores the browser's login for THIS join, so
+          // it can only ever be less than the person signed in; the door key below still applies
+          const guestVisit = msg.guest === true;
+          const auth = !guestVisit && c.auth && c.auth.exp > Date.now() ? c.auth : null;
           // …and a renderer may come through on the RENDERERS' credential
           // instead (config.ts RENDERER_TOKEN) — only as a renderer
           const rendererKey = Boolean(RENDERER_TOKEN) && Boolean(msg.renderer) && String(msg.token ?? "") === RENDERER_TOKEN;
@@ -999,8 +1003,31 @@ const server = Bun.serve({
               reapAuxLegs(c.world, c, "primary traveled");
             }
           }
+          if (guestVisit) { c.auth = undefined; c.sub = undefined; }   // nothing this join does may wear the login
           const w = admitJoin(c, ws, msg, auth);
           if (!w) return;
+          // fork-only (docs/portos-guests.md): the guest door is a REDUCTION in authority. It opens only into an owned
+          // world whose owner opted in (@world `portos/guests` {admit: true}), only embodied, and only while what a guest
+          // holds there is the base rung with no permission at all (before: a `visitor` grant, no generation, no flight). The
+          // identity is anonymous (no account was proven above), so the current protocol's own access rules (the door, listed-only worlds,
+          // bans by address) have already run on it.
+          c.guestVisit = guestVisit;
+          if (guestVisit) {
+            const wc = (w.log?.live.state().entities?.["@world"]?.c ?? {}) as Record<string, any>;
+            const r = rightsFor(w, c);
+            const why = !c.anonymous ? "a guest visit can't carry an account"
+              : c.spectator || c.renderer ? "a guest visit is embodied, never a watcher or renderer"
+              : r.open ? "this world has no owner to admit guests"
+              : wc["portos/guests"]?.admit !== true ? "this world doesn't admit host guests"
+              : r.rank !== 0 || r.permissions.length || r.gen || r.fly ? "guests here hold more than a visitor may"
+              : null;
+            if (why) {
+              ws.send(JSON.stringify({ type: "error", error: `guest entry refused: ${why}` }));
+              ws.close(4005, "guest admission refused");   // a refused join: the client shows these words, never redials
+              clients.delete(ws);
+              return;
+            }
+          }
           // slice 3c: a world talks only to clients that fold its log. A client that doesn't (an old page, an old agent build) is refused
           // with the reason; 4005 = a refused join, which clients know not to redial
           // (an aux surface, e.g. a voice leg, carries presence and audio, never world state: it isn't asked to)

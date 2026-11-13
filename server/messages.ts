@@ -99,6 +99,8 @@ export const MESSAGES: Record<string, (ctx: MsgCtx, msg: any) => void> = {
     // (speech is arrival-only; the recorder holds no say text), so the
     // reasons things failed to reach it are public too.
     if (!c.world) return;
+    // fork-only (docs/portos-guests.md): a host-admitted guest visit reads no flight recorder (the door's cutoff since it was added, kept)
+    if (c.guestVisit) { ws.send(JSON.stringify({ type: "error", error: "debug history is unavailable during guest visits" })); return; }
     const limit = pageLimit(msg.limit);
     if (msg.script != null) {
       // one script's own log ring + status — the author's console

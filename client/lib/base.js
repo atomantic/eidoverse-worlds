@@ -91,6 +91,9 @@ const remember = (k, v) => { try { store?.setItem(k, v); } catch { /* no memory 
 const picked = globalThis.__ewWorld ?? pickWorld(params, ...rememberedWorlds());
 export const CONFIG = {
   params,
+  // fork-only (docs/portos-guests.md): a host-admitted visitor. No account, no login, no saved name or account taken
+  // or written; the server checks the world admits guests this way.
+  guest: params.get('guest') === '1',
   world: picked.world,
   // true when a memory chose the world, not the link: a refusal at its door
   // then forgets it and reloads to wherever a bare link leads next — the other
@@ -109,11 +112,12 @@ export const CONFIG = {
   dev: params.has('dev') || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(globalThis.location?.hostname ?? ''),
 };
 if (params.get('key')) remember('ew-key', CONFIG.token);
-remember('ew-name', CONFIG.name);
+if (!CONFIG.guest) remember('ew-name', CONFIG.name);   // a guest visit keeps the resident's saved name
 // the ACCOUNT a private (TRUST_NAMES) server knows you by, kept apart from the name you show (R 10-11: renaming herself
 // "Rab" made her a stranger with no role in her own world). Fixed at the first real name this browser used; ?account=
-// overrides. A server with sign-in ignores it: the session is the account there.
-{ let acct = params.get('account') || store?.getItem('ew-account') || '';
+// overrides. A server with sign-in ignores it: the session is the account there. A guest visit carries none.
+if (CONFIG.guest) CONFIG.account = null;
+else { let acct = params.get('account') || store?.getItem('ew-account') || '';
   if (!acct && !/^guest-/.test(CONFIG.name)) acct = CONFIG.name;
   CONFIG.account = acct || null; if (acct) store?.setItem('ew-account', acct); }
 
