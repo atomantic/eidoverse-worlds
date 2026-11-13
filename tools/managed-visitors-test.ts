@@ -7,7 +7,7 @@ function fixture() {
   const host = createManagedVisitors({ token, allowedWorlds: ['scratch'], exists: id => id === 'scratch', now: () => time });
   const server = Bun.serve({ port: 0, hostname: '127.0.0.1', fetch: async (req, srv) => await host.handle(req, srv.requestIP(req)?.address ?? '') ?? new Response('missing', { status: 404 }) });
   const request = async (path: string, body?: any, credential = token) => {
-    const response = await fetch(`${server.url}${prefix}${path}`, { method: body === undefined ? 'GET' : 'POST', headers: { authorization: `Bearer ${credential}` }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+    const response = await fetch(`${server.url}${prefix}${path}`, { method: body === undefined ? 'GET' : 'POST', headers: { authorization: `Bearer ${credential}`, ...(path === '/admissions' ? { 'X-Managed-Visitor-Deadline': String(time + 1000) } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
     return { status: response.status, body: await response.json() };
   };
   const admission = { version: 1, appId: 'fly-garden', individualId: 'one', individualSessionId: 'neural-session', worldId: 'scratch', body: 'fly-v1', ttlMs: 1000 };
@@ -76,4 +76,25 @@ test('server-only host lane uses actual socket address and rejects browser origi
   for (const address of ['127.0.0.1', '::1', '::ffff:127.0.0.1']) expect((await host.handle(request(), address))?.status).toBe(200);
   for (const address of ['', '192.0.2.1', '100.64.1.2']) expect((await host.handle(request({ 'x-forwarded-for': '127.0.0.1' }), address))?.status).toBe(403);
   for (const origin of ['https://outside.invalid', 'http://localhost', 'null']) expect((await host.handle(request({ origin }), '127.0.0.1'))?.status).toBe(403);
+});
+
+test('admission deadline is negotiated, mandatory and clamps expiry after delayed body consumption', async () => {
+  let time = 10000;
+  const host = createManagedVisitors({ token, allowedWorlds: ['scratch'], exists: () => true, now: () => time });
+  const admission = { version: 1, appId: 'app', individualId: 'one', individualSessionId: 'neural', worldId: 'scratch', body: 'fly-v1', ttlMs: 10000 };
+  const request = (deadline: string | null, body: any = JSON.stringify(admission)) => new Request(`http://localhost${prefix}/admissions`, {
+    method: 'POST', headers: { authorization: `Bearer ${token}`, ...(deadline === null ? {} : { 'X-Managed-Visitor-Deadline': deadline }) }, body,
+  });
+  const capability = await host.handle(new Request(`http://localhost${prefix}/version`, { headers: { authorization: `Bearer ${token}` } }), '127.0.0.1');
+  expect((await capability!.json()).capabilities.managedVisitors.admissionDeadline).toBe(true);
+  for (const value of [null, '', 'NaN', '1e5', '9999', '10000', '9007199254740992', '310001']) expect((await host.handle(request(value), '127.0.0.1'))?.status).toBe(409);
+  expect(host.publicState('scratch').visitors).toEqual([]);
+  let controller: ReadableStreamDefaultController;
+  const body = new ReadableStream({ start(value) { controller = value; } });
+  const pending = host.handle(request('11000', body), '127.0.0.1');
+  time = 11000; controller!.enqueue(new TextEncoder().encode(JSON.stringify(admission))); controller!.close();
+  expect((await pending)?.status).toBe(409); expect(host.publicState('scratch').visitors).toEqual([]);
+  const accepted = await host.handle(request('11500'), '127.0.0.1');
+  expect(accepted?.status).toBe(200); expect((await accepted!.json()).expiresAt).toBe(11500);
+  time = 11500; expect(host.publicState('scratch').visitors).toEqual([]);
 });
