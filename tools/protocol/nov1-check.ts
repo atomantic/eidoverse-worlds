@@ -45,6 +45,10 @@ const UNRELATED = [
   // fork-only (docs/portos-frame.md): the PortOS frame contract is versioned on its own, and V1 is ITS first version
   ["shared/portosframe.js", /[Ff]rame-contract V1|frame contract V1/, "the PortOS frame contract's own version (fork-only)"],
   ["client/lib/portosframe.js", /[Ff]rame-contract V1|frame contract V1/, "the PortOS frame contract's own version (fork-only)"],
+  // fork-only (docs/managed-visitors.md): the managed visitor broker's wire contract names its own versions (the fly-v1 body,
+  // the /api/managed-visitors/v1 routes, the spatial-proxy-v1 sensory source); a PortOS broker depends on them verbatim
+  ["server/managed-visitors.ts", /fly-v1|managed-visitors\\?\/v1|spatial-proxy-v1/, "the managed visitor broker contract's own versions (fork-only)"],
+  ["client/lib/managed-flies.js", /fly-v1/, "the managed visitor broker contract's body name (fork-only)"],
   ["server/directory.ts", /directory|v1 → v2|v1 keyed an agent/, "the authority directory's own file format version (v1 → v2), not the protocol"],
   ["shared/blueprint.js", /blueprint|v1 = an original|nested cop/, "the blueprint RECORD format's version (kind eido.blueprint, v: 1)"],
   ["client/lib/seatcore.js", /SEAT_METHOD/, "a seat-measuring method's name"],

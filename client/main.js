@@ -36,6 +36,7 @@ import { initCauses } from './lib/realize/livechat.js';
 // side-effecting: the `particles` component's host wires itself to the comp
 // and entity buses on import (it has no boot step of its own)
 import './lib/emitters.js';
+import { updateManagedFlies } from './lib/managed-flies.js';   // fork-only (docs/managed-visitors.md)
 import './lib/pictures.js';
 import './lib/materialcomp.js';   // the material component: an image on a named node of the model (R 10-27)
 import { tickSounds } from './lib/sounds.js';   // the sound comp: positional audio from an entity
@@ -663,6 +664,7 @@ registerSystem('me-update', (dt, t, now) => {
 registerSystem('bodydrag', (dt, t, now) => updateBodyDrag(dt, now)); // before remotes:
                                  // the takeover pose lands in this frame's avatar.update
 registerSystem('mods', (dt, t, now) => tickMods(dt, now));       // 🧩 runtime scripts
+registerSystem('managed-flies', () => updateManagedFlies());     // fork-only: managed visitor presence expiry
 registerSystem('remotes', (dt, t, now) => updateRemotes(dt, now));
 registerSystem('gaze', (dt, t, now) => updateGaze(myState.pos, getMe(), CONFIG.name, now));
 // the hover card beside a nameplate (desktop pointer, touch tap, VR laser) — after gaze, before render

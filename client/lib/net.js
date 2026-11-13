@@ -952,6 +952,7 @@ function noteStalePresence(id) {
  *  handled as its event runs. */
 async function handle(msg, at) {
   switch (msg.type) {
+    case 'managed-flies': bus.emit('managed-flies', msg); return;   // fork-only presence (docs/managed-visitors.md)
     case 'snapshot': startClock(); return onSnapshot(msg);
 
     // Two answers share the name: a round trip's ({t0, t}: the ask in askClock below), and the server's time sent
