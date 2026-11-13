@@ -2274,7 +2274,8 @@ try { const o = JSON.parse(localStorage.getItem('ew-style-tokens') || '{}');
         : { world: 'commons', remembered: false };
     }
 
-    if (params.get('earlysock') === '0') return;
+    // fork-only: a host-admitted guest visit (?guest=1) joins through net.js, never the early socket's account join
+    if (params.get('earlysock') === '0' || params.get('guest') === '1') return;
     if (!person) return;
     const name = params.get('name')
       || (localStorage.getItem('ew-name-set') === '1' ? localStorage.getItem('ew-name') : null);

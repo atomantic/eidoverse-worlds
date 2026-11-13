@@ -314,6 +314,7 @@ export function sendJoin() {
     ...(rendering && CONFIG.roam ? { roam: true } : {}),
     token: CONFIG.token,
     ...(CONFIG.account ? { account: CONFIG.account } : {}),
+    ...(CONFIG.guest ? { guest: true } : {}),   // fork-only: the host-admitted visitor door (docs/portos-guests.md)
     // this client folds the world's log stream itself (the server refuses a client that doesn't)
     replica: true,
     session: PAGE_SESSION,
@@ -636,6 +637,8 @@ let identity;   // undefined = not asked yet, null = no session
 let authCfg = null;
 
 async function fetchIdentity() {
+  // fork-only: an explicit host-admitted visitor never adopts a browser account identity (docs/portos-guests.md)
+  if (CONFIG.guest) { identity = null; authCfg = null; return; }
   if (identity !== undefined) return;
   [identity, authCfg] = await Promise.all([
     fetch('/whoami').then((r) => (r.ok ? r.json() : null)).catch(() => null),
@@ -661,7 +664,7 @@ async function fetchIdentity() {
  *  the cap: if the identity node is down we fall through to the authority (which
  *  offers the same link) instead of redirect-looping. */
 export function bounceToLogin() {
-  if (identity || !authCfg?.login || CONFIG.token) return false;
+  if (CONFIG.guest || identity || !authCfg?.login || CONFIG.token) return false;
   if (localStorage.getItem('ew-authed') !== '1') return false;
   const last = Number(sessionStorage.getItem('ew-login-bounce') ?? 0);
   if (Date.now() - last < 60_000) return false;
@@ -1275,9 +1278,9 @@ async function onSnapshot(msg) {
   const you = nameFromJoinAck(msg.you, { renderer: CONFIG.renderer, spectate: CONFIG.spectate, verified: !!msg.yourSub });
   if (you && you !== CONFIG.name && !msg.renameRefused) {
     CONFIG.name = you;
-    localStorage.setItem('ew-name', you);
+    if (!CONFIG.guest) localStorage.setItem('ew-name', you);   // a guest visit (fork-only) keeps the resident's saved name
     toast(`you're appearing as “${msg.you}”`, 'info', 8000);
-  } else if (msg.renameRefused) { CONFIG.name = msg.you; localStorage.setItem('ew-name', msg.you);
+  } else if (msg.renameRefused) { CONFIG.name = msg.you; if (!CONFIG.guest) localStorage.setItem('ew-name', msg.you);
     try { const u = new URL(location.href); if (u.searchParams.has('name')) { u.searchParams.set('name', msg.you); history.replaceState(null, '', u); } } catch { /* fine */ } }
   // a RE-join: lastSeq is still the last entry the old socket delivered, and
   // what was said after it may be trimmed out of this snapshot's chat window

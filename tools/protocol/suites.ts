@@ -89,6 +89,7 @@ export const SUITES: [string, string, number][] = [ // name, file, tail lines to
   ["portos-frame", "../portos-frame-test.ts", 1], // fork-only (docs/portos-frame.md): frame-contract V1 policy: capabilities, routes, nonces, origins, the message boundary
   ["portos-frame-dom", "../portos-frame-dom-test.ts", 1], // fork-only: the real frame receiver and use prompt: delayed trust, navigation, teleport, stale messages, departure
   ["departure", "../departure-test.ts", 1], // fork-only: leaveWorld cancels the redial and an in-flight connect, answers pending requests, closes the socket
+  ["guest-entry", "guest-entry-check.ts", 1], // fork-only (docs/portos-guests.md): the host-admitted guest door is a reduction: door key, owner opt-in, anonymous, base rung with no permission
   ["latestread", "../latestread-test.ts", 1], // the panels' paced re-read and the History retry's back-off (latestread.js, backoff.js); it existed, but no lane ran it
   ["chat-mention-insert", "../chat-mention-insert-test.ts", 1], // #313 review: Mention and a name click put a space before `@name ` after a word, through chat.js itself
   ["chat-mention", "../chat-mention-test.mjs", 1], // #232: a chat name ends where the door's does (`cairn` is not inside `cairn-bridge`)

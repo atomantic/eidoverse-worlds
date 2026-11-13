@@ -72,6 +72,7 @@ export type Client = {
   account?: string | null; // the account this connection PROVED at its first join (fixed for the socket's life); null = anonymous
   addr?: string | null; // the connection's address, hashed at upgrade (a guest's ban names it)
   anonymous?: boolean; // no account: a guest (a member unless the world raises guests; named as one)
+  guestVisit?: boolean; // fork-only: joined through the host-admitted guest door (docs/portos-guests.md)
   actorId?: string;      // a world's actor: this connection's opaque id from the authority directory (server/directory.ts)
   replica?: boolean;    // the client said it folds the log stream itself (every current client does; one that doesn't is refused at join)
   bcRing?: unknown[];  // dev crash forensics (?bc=1): last N breadcrumbs, printed on close
