@@ -872,7 +872,8 @@ const server = Bun.serve({
   idleTimeout: 255,
   async fetch(req, srv) {
     // fork-only (docs/managed-visitors.md): the managed visitor host lane answers its own prefix, and nothing else
-    const managed = await managedVisitors.handle(req);
+    // the peer socket's own address, never a forwarded header: the lane is server-only loopback
+    const managed = await managedVisitors.handle(req, srv.requestIP(req)?.address ?? '');
     if (managed) return managed;
     // The whole HTTP surface is routes.ts's table (§15, 7c) — one row per
     // endpoint, first match wins, in exactly the order the if-chain had.

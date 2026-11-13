@@ -5,7 +5,7 @@ const prefix = '/api/managed-visitors/v1';
 function fixture() {
   let time = 10000;
   const host = createManagedVisitors({ token, allowedWorlds: ['scratch'], exists: id => id === 'scratch', now: () => time });
-  const server = Bun.serve({ port: 0, hostname: '127.0.0.1', fetch: async req => await host.handle(req) ?? new Response('missing', { status: 404 }) });
+  const server = Bun.serve({ port: 0, hostname: '127.0.0.1', fetch: async (req, srv) => await host.handle(req, srv.requestIP(req)?.address ?? '') ?? new Response('missing', { status: 404 }) });
   const request = async (path: string, body?: any, credential = token) => {
     const response = await fetch(`${server.url}${prefix}${path}`, { method: body === undefined ? 'GET' : 'POST', headers: { authorization: `Bearer ${credential}` }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
     return { status: response.status, body: await response.json() };
@@ -68,4 +68,12 @@ test('unsequenced scoped leave wins over delayed commands and remains idempotent
     expect((await f.request(`${base}/actions`, { ...scope(s), sequence: 0, action: { type: 'start' } })).status).toBe(410);
     expect(f.host.publicState('scratch').visitors).toEqual([]);
   } finally { f.server.stop(true); }
+});
+
+test('server-only host lane uses actual socket address and rejects browser origins', async () => {
+  const host = createManagedVisitors({ token, allowedWorlds: ['scratch'], exists: () => true });
+  const request = (extra = {}) => new Request(`http://localhost${prefix}/version`, { headers: { authorization: `Bearer ${token}`, ...extra } });
+  for (const address of ['127.0.0.1', '::1', '::ffff:127.0.0.1']) expect((await host.handle(request(), address))?.status).toBe(200);
+  for (const address of ['', '192.0.2.1', '100.64.1.2']) expect((await host.handle(request({ 'x-forwarded-for': '127.0.0.1' }), address))?.status).toBe(403);
+  for (const origin of ['https://outside.invalid', 'http://localhost', 'null']) expect((await host.handle(request({ origin }), '127.0.0.1'))?.status).toBe(403);
 });
