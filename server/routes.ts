@@ -20,7 +20,10 @@ import { randomBytes } from "node:crypto";
 import { agentGuideResponse } from "./briefing.ts";
 import { creditsFor } from "../shared/libcredits.js";
 import { libraryCredits } from "./modelcatalogue.ts";
-import { ROOT, WORLDS_DIR, LIBRARY_DIR, OPT_DIR, PATCH_DIR, LADDER, JOIN_TOKEN, STORE_MIN } from "./config.ts";
+import { ROOT, WORLDS_DIR, LIBRARY_DIR, OPT_DIR, PATCH_DIR, LADDER, JOIN_TOKEN, STORE_MIN, EMBED_PARENT_ORIGIN } from "./config.ts";
+// Fork-only (docs/portos-frame.md): one table for what this build implements,
+// shared with the browser bridge that has to make the same claim at handshake.
+import { FRAME_CAPABILITIES } from "../shared/portosframe.js";
 import { isStoreOriginal, isServingArtifact, variantStatus, variantSource, freshOver } from "./store-variants.ts";
 import { glbPerfOfFile } from "./glbperf.ts";
 import { rankOf, TIER_NAMES } from "../shared/perfrank.js";
@@ -910,8 +913,23 @@ const ROUTES: Route[] = [
         lodRecipe: LOD_RECIPE,
         // what the optimizer is doing / could not afford (config.ts OPT_MEM_BUDGET_MB)
         opt: optStatus(),
+        // Fork-only: independently versioned renderer capabilities
+        // (docs/portos-frame.md). The frame handshake, not this report, is
+        // what proves a loaded browser bundle speaks them.
+        capabilities: { ...FRAME_CAPABILITIES },
         ...(process.env.WORLD_INSTANCE_NONCE ? { instance: process.env.WORLD_INSTANCE_NONCE } : {}),
       }),
+      { headers: { "content-type": "application/json", "cache-control": "no-store" } }),
+  },
+  {
+    // Fork-only: trusted embedding configuration for the browser's frame bridge:
+    // the ONE parent origin whose postMessage the client will answer. The
+    // browser cannot decide this for itself — a referrer, an opener and a query
+    // parameter are all things a page can claim about itself — so the operator
+    // states it here and the client compares with ===. Null = dormant.
+    match: (u) => u.pathname === "/embed-config",
+    handler: () => new Response(
+      JSON.stringify({ parentOrigin: EMBED_PARENT_ORIGIN || null }),
       { headers: { "content-type": "application/json", "cache-control": "no-store" } }),
   },
   {

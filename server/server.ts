@@ -12,7 +12,7 @@ import { join } from "node:path";
 // config FIRST — it carries the WORLDS_DIR mkdir, and auth.ts/moderation.ts
 // carry their restore-at-boot blocks, so this import order IS the unsplit
 // file's boot order: mkdir → session restore → ban restore (§15, step 7a).
-import { TRUST_NAMES } from "./config.ts";
+import { TRUST_NAMES, EMBED_PARENT_ORIGIN } from "./config.ts";
 import { checkHello, missingFeatures, versionLine } from "../shared/protocol/hello.js";
 import { featureDecision, KNOWN_FEATURES } from "../shared/protocol/features.js";
 // how often a person may change the name they show (moderation: a name is how people recognise who did what)
@@ -1349,6 +1349,9 @@ console.log(`  worlds:  ${WORLDS_DIR}`);
 { const t = mintSetupToken(); if (t) console.log(`  ${setupLine(t)}`); }   // first run: the one place the token is printed (server/setup.ts)
 if (TRUST_NAMES) console.log(`  ⚠ TRUST_NAMES=1: a typed name IS an account here (local:<name>). Private servers only: anyone who can reach ${HOST}:${PORT} can be anyone.`);
 if (!JOIN_TOKEN) console.log("  ⚠ NO JOIN_TOKEN — the server is OPEN. Fine on a tailnet, wrong on a public box.");
+// Fork-only (docs/portos-frame.md): "the handshake does nothing" has two causes and this line separates them: an
+// unset origin (dormant by design) from a set one the host does not match. The browser stays silent either way.
+console.log(EMBED_PARENT_ORIGIN ? `  embedded by: ${EMBED_PARENT_ORIGIN}` : "  embedded by: nobody (EMBED_PARENT_ORIGIN unset — the frame bridge is dormant)");
 // A fresh clone without the client's install step serves a client that can
 // never wake: the importmap points `three` at client/node_modules, every
 // module import 404s, and the splash used to sit at "waking the engine"

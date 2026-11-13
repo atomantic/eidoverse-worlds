@@ -17,6 +17,10 @@ import { flashHint } from './ui.js';
 import { usePrompt } from './input.js';
 import { html } from './markup.js';
 import * as OP from '../../shared/requests.js';
+// Fork-only (docs/portos-frame.md): a thing carrying the host's `portos/link` offers the host's action, and only while
+// a validated frame session is live. The input layer never sees a URL or a credential, just the validated host route.
+import { portosSession, portosAction, frameRouteFor, openInPortos } from './portosframe.js';
+const PORTOS_VERB = { visit: 'teleport as guest', open: 'open in PortOS' };
 
 import { USE_REACH } from '../../shared/protocol/physconst.js';
 export { USE_REACH };
@@ -33,7 +37,7 @@ export function usable() {
   if (hooks.camera?.getWorldDirection) { hooks.camera.getWorldDirection(_d); fx = _d.x; fz = _d.z; }
   let best = null, bestS = Infinity;
   for (const [id, bag] of bags()) {
-    const rx = bag.reactions; if ((!isBag(rx) || !Object.keys(rx).length) && !isBag(bag.openable)) continue;   // an openable alone offers open (actionsOf)
+    const rx = bag.reactions; if ((!isBag(rx) || !Object.keys(rx).length) && !isBag(bag.openable) && !portosAction(bag, portosSession())) continue;   // an openable alone offers open (actionsOf); a hosted link offers the host's action
     const obj = entities.get(id); if (!obj?.getWorldPosition || outOfMyView(obj)) continue;   // nothing I hid is offered
     obj.getWorldPosition(_v);
     const dx = _v.x - me.x, dz = _v.z - me.z, d = Math.hypot(dx, dz);
@@ -43,6 +47,8 @@ export function usable() {
     if (s < bestS) { bestS = s; best = id; }
   }
   if (!best) return null;
+  const hosted = portosAction(bagOf(best), portosSession());   // the host's action wins over a use, as it always did on portos
+  if (hosted) return { id: best, action: hosted, verb: PORTOS_VERB[hosted], portos: true };
   const all = actionsOf(best);
   // the action: one open to everyone if there is one (a builder-only bolt beside a door isn't what E does)
   const u = all.find((a) => !a.who) ?? all[0];
@@ -84,6 +90,8 @@ export function usePromptHint() {
 /** Use what E points at. Returns the door's reply (or null when there's nothing in reach). */
 export async function useNearest() {
   const u = usable(); if (!u) return null;
+  // re-evaluated at the press (usable() above): a stale prompt cannot send a moved or unlinked thing to the host
+  if (u.portos) return { ok: openInPortos(u.id, frameRouteFor(bagOf(u.id))), portos: u.action };
   return useThing(u.id, u.action, u.verb);   // a use isn't an edit: no undo step
 }
 

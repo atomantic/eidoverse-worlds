@@ -42,6 +42,9 @@ const RULES = [
 ];
 // "v1" where it names something that isn't the old protocol: file → a pattern the whole line must match, and why
 const UNRELATED = [
+  // fork-only (docs/portos-frame.md): the PortOS frame contract is versioned on its own, and V1 is ITS first version
+  ["shared/portosframe.js", /[Ff]rame-contract V1|frame contract V1/, "the PortOS frame contract's own version (fork-only)"],
+  ["client/lib/portosframe.js", /[Ff]rame-contract V1|frame contract V1/, "the PortOS frame contract's own version (fork-only)"],
   ["server/directory.ts", /directory|v1 → v2|v1 keyed an agent/, "the authority directory's own file format version (v1 → v2), not the protocol"],
   ["shared/blueprint.js", /blueprint|v1 = an original|nested cop/, "the blueprint RECORD format's version (kind eido.blueprint, v: 1)"],
   ["client/lib/seatcore.js", /SEAT_METHOD/, "a seat-measuring method's name"],
