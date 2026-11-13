@@ -61,8 +61,10 @@ import { setWaveClock } from './lib/water.js';
 import { myReachBag } from './lib/reachnet.js';
 import {
   replica, net, connect, initIdentity, loginUrl, wireNet, sendRequest, sendPose, sendTyping,
-  setPoseOverride, sendPuppet, sendAnim, builtIn,
+  setPoseOverride, sendPuppet, sendAnim, builtIn, leaveWorld,
 } from './lib/net.js';
+import { setDepartureHandler } from './lib/portosframe.js';
+setDepartureHandler(leaveWorld);   // fork-only: the host's portos:depart closes this world before it opens the next
 import { poseCommands } from './lib/posecommands.js';
 import { updateBuild, toggleBuildMode, isBuilding, editSurface } from './lib/build.js';
 // may I build here: the build switch (the authority's), else the role (an older server); unknown = no (strict)

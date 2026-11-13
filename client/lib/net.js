@@ -488,8 +488,51 @@ export function rejoin() {
   intentionalClose = net.ws ?? true;   // the socket being replaced: its close is the one rejoin() answers for
   try { net.ws?.close(); } catch { /* already gone */ }
   net.joined = false;
+  departed = false;   // an explicit re-entry after leaveWorld()
   connect();
 }
+
+// ---- departure (fork-only, docs/portos-frame.md `worldDeparture`) ----
+// A host that opens the next world must first see this one let go: no socket retrying, no redial pending, no request
+// left to land after the visitor is gone. the current protocol queues nothing while offline (sendRequest refuses), so what departure
+// cancels is the redial timer, an in-flight connect (generation), and the live and early sockets.
+let departed = false;
+let connectionGeneration = 0;
+let retryTimer = null;
+/** Every redial goes through here, so departure can cancel the one pending. */
+function scheduleRedial(ms) {
+  clearTimeout(retryTimer);
+  retryTimer = setTimeout(() => { retryTimer = null; void connect().catch((e) => report('reconnect', e)); }, ms);
+}
+/** Stop presence and retries before the host opens another world. Resolves once every socket has closed (3 s cap). */
+export async function leaveWorld() {
+  departed = true;
+  connectionGeneration += 1;
+  clearTimeout(retryTimer); retryTimer = null;
+  clearInterval(clockTimer); clockTimer = null;
+  net.joined = false;
+  net.status = 'departed';
+  bus.emit('net', net);
+  failPending();   // nothing still in flight lands for a visitor who has gone
+  const early = globalThis.__ewEarlySocket;
+  globalThis.__ewEarlySocket = null;
+  const sockets = [...new Set([net.ws, early?.ws].filter(Boolean))];
+  await Promise.all(sockets.map((ws) => new Promise((resolve, reject) => {
+    if (ws.readyState === 3) { resolve(); return; }
+    const closed = () => { clearTimeout(timer); ws.removeEventListener('close', closed); resolve(); };
+    const timer = setTimeout(() => {
+      ws.removeEventListener('close', closed);
+      reject(new Error('World connection did not close.'));
+    }, 3000);
+    ws.addEventListener('close', closed);
+    ws.close(1000, 'Leaving world');
+  })));
+}
+// Browsers can freeze a page instead of destroying it during navigation.
+addEventListener('pagehide', () => { void leaveWorld().catch(() => {}); });
+addEventListener('pageshow', (event) => {
+  if (event.persisted && departed) { departed = false; void connect().catch((e) => report('reconnect', e)); }
+});
 
 let intentionalClose = false;   // false, or the socket whose close rejoin() drives (true: one with no socket to name)
 let everJoined = false;   // has this page been let in at all (a snapshot arrived)
@@ -642,7 +685,11 @@ export function loginUrl() {
 }
 
 export async function connect() {
+  if (departed) return;
+  clearTimeout(retryTimer); retryTimer = null;
+  const generation = ++connectionGeneration;
   await fetchIdentity();
+  if (departed || generation !== connectionGeneration) return;   // left (or re-dialled) while identity was asked
   // Login-required deployment and we have neither a session nor a door key:
   // go get one. The home node round-trips through /auth back to here.
   if (!identity && authCfg?.required && authCfg?.login && !CONFIG.token) {
@@ -675,7 +722,7 @@ export async function connect() {
       // buffering handler still catches anything arriving mid-drain; the
       // rewire below is synchronous with the final empty check, so no
       // message can slip between the two.
-      while (early.buffered.length) {
+      while (early.buffered.length && !departed && generation === connectionGeneration) {
         const raw = early.buffered.shift();
         // When the boot script's message handler ran, so the server's `t` it
         // carries is sampled then rather than after the wait for this drain. Undefined
@@ -685,6 +732,7 @@ export async function connect() {
         try { msg = JSON.parse(raw); } catch { continue; }
         try { await handle(msg, at); } catch (e) { report(`net ${msg.type}`, e); }
       }
+      if (departed || generation !== connectionGeneration) return;
       wireSocket(net.ws);   // live delivery takes over (onopen stays the boot script's)
       return;
     }
@@ -714,7 +762,11 @@ export async function connect() {
   net.status = 'connecting';
   bus.emit('net', net);
   net.ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
-  net.ws.onopen = () => { sendJoin(); };
+  const current = net.ws;
+  net.ws.onopen = () => {
+    if (departed || current !== net.ws) { current.close(); return; }   // left, or superseded, while it was opening
+    sendJoin();
+  };
   wireSocket(net.ws);
 }
 
@@ -726,6 +778,7 @@ function wireSocket(ws) {
   ws.onerror = () => { /* onclose always follows; nothing useful here */ };
 
   ws.onmessage = async (ev) => {
+    if (departed || ws !== net.ws) return;   // a visitor who left hears nothing more from that world
     let msg;
     try { msg = JSON.parse(ev.data); } catch { return; }
     try { await handle(msg); } catch (e) { report(`net ${msg.type}`, e); }
@@ -754,6 +807,7 @@ function onSocketClosed(ev) {
   const sock = ev?.target ?? null;
   failPending(sock);
   if (sock && net.ws && sock !== net.ws) { if (sock === intentionalClose) intentionalClose = false; return; }
+  if (departed) return;   // a deliberate leave (leaveWorld): never a redial, never a refusal on the splash
   clearInterval(clockTimer); clockTimer = null;
   net.joined = false;
   // rejoin() drives its own reconnect, for the socket it replaced only: the NEW socket dropping before the old close
@@ -793,7 +847,7 @@ function onSocketClosed(ev) {
   if (ev.code === 4011) {
     net.status = 'retrying';
     bus.emit('net', net);
-    setTimeout(connect, redial.next(REDIAL.full));
+    scheduleRedial(redial.next(REDIAL.full));
     return;
   }
   // 4005 = a refused join: a malformed name, world-unavailable (missing or not yours to see), an old-format world, a client that doesn't fold the log.
@@ -806,7 +860,7 @@ function onSocketClosed(ev) {
     if (!waitBoot(text)) toast(text, 'warn', 8000);
     net.status = 'retrying';
     bus.emit('net', net);
-    setTimeout(connect, redial.next(REDIAL.full));
+    scheduleRedial(redial.next(REDIAL.full));
     return;
   }
   if (ev.code === 4005 && joinRefused?.code === 'old-format') {   // the splash says it, links the doc, and offers the operator the upgrade
@@ -844,7 +898,7 @@ function onSocketClosed(ev) {
   }
   net.status = 'retrying';
   bus.emit('net', net);
-  setTimeout(connect, redial.next()); // back off instead of hammering
+  scheduleRedial(redial.next()); // back off instead of hammering (cancellable: leaveWorld)
 }
 
 // ---------------------------------------------------------------- handling
