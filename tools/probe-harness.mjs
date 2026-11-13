@@ -30,13 +30,14 @@ import { randomUUID } from 'node:crypto';
 // (the step's own remembered choice; a written value is never overwritten). tools/vrmic-probe.mjs passes null to
 // drive the step itself.
 /** SFU_TEST_CHROME override ▸ managed browser. `mic: true` adds the fake-media
- *  flags a microphone probe needs (and its contexts get mic permission). */
-export async function launchBrowser({ mic = false, vrMicChoice = 'later' } = {}) {
+ *  flags a microphone probe needs (and its contexts get mic permission);
+ *  `args` appends probe-specific switches (the renderer probes want WebGPU). */
+export async function launchBrowser({ mic = false, args: extra = [], vrMicChoice = 'later' } = {}) {
   const exe = process.env.SFU_TEST_CHROME;
   // no GPU watchdog: a software-rendered sky bake is a 4–7 s frame here, and the watchdog's kill loses every page's
   // WebGL context (gpulost.js then reloads the page mid-probe, 11-03)
   const args = ['--disable-gpu-watchdog', ...(mic ? ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream',
-    '--autoplay-policy=no-user-gesture-required'] : [])];
+    '--autoplay-policy=no-user-gesture-required'] : []), ...extra];
   const b = await chromium.launch({ ...(exe ? { executablePath: exe } : {}), args });
   // BOOT_CHECK_VIEWPORT=390x844 drives a probe at a phone-width (or any) viewport.
   // Without it the context takes Playwright's default — which is why a layout that
