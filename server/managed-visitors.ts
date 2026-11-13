@@ -1,6 +1,6 @@
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 
-export const MANAGED_CAPABILITY = Object.freeze({ version: 1, bodies: ['fly-v1'], controllerRaster: { width: 8, height: 4, channels: 3 }, actions: ['start', 'pause', 'rest', 'move', 'leave'], expiryEnforced: true });
+export const MANAGED_CAPABILITY = Object.freeze({ version: 1, bodies: ['fly-v1'], controllerRaster: { width: 8, height: 4, channels: 3 }, actions: ['start', 'pause', 'rest', 'move', 'leave'], expiryEnforced: true, admissionDeadline: true });
 export const GENTLE_PATCH = Object.freeze({ version: 1, radius: 2, height: 0.3, flowers: [
   { x: -1, z: 1, rgb: [230, 100, 160] }, { x: 1, z: 1, rgb: [230, 190, 70] },
   { x: 1, z: -1, rgb: [120, 160, 240] }, { x: -1, z: -1, rgb: [190, 120, 230] },
@@ -52,10 +52,13 @@ export function createManagedVisitors({ token = '', allowedWorlds = [], exists =
       // Recheck after async body consumption; no stale admission/action can outlive its lease.
       const admittedAt = clock();
       if (path === `${prefix}/admissions`) {
+        const deadlineText = req.headers.get('x-managed-visitor-deadline') ?? '';
+        const deadline = Number(deadlineText);
+        if (!/^[1-9]\d{0,15}$/.test(deadlineText) || !Number.isSafeInteger(deadline) || deadline <= admittedAt || deadline > admittedAt + 300000) throw new Refusal('Admission deadline absent, invalid or expired.', 409);
         if (!exact(body, ['version', 'appId', 'individualId', 'individualSessionId', 'worldId', 'body', 'ttlMs']) || body.version !== 1 || body.body !== 'fly-v1' || !['appId', 'individualId', 'individualSessionId'].every(k => identity(body[k])) || !allowedWorlds.includes(body.worldId) || !exists(body.worldId) || !Number.isInteger(body.ttlMs) || body.ttlMs < 1000 || body.ttlMs > 300000) throw new Refusal('Invalid or unavailable visitor scope/body/world.');
         if (sessions.size >= 64) throw new Refusal('Managed visitor capacity reached.', 409);
         if ([...sessions.values()].some(s => s.appId === body.appId && s.individualId === body.individualId)) throw new Refusal('Individual already has an active visitor lease.', 409);
-        const s = { ...body, sessionId: randomUUID(), epoch: randomUUID(), expiresAt: admittedAt + body.ttlMs, status: 'paused', pose: { x: 0, z: 0, yaw: 0 }, sequence: -1, frameId: 0 };
+        const s = { ...body, sessionId: randomUUID(), epoch: randomUUID(), expiresAt: Math.min(deadline, admittedAt + body.ttlMs), status: 'paused', pose: { x: 0, z: 0, yaw: 0 }, sequence: -1, frameId: 0 };
         sessions.set(s.sessionId, s); return Response.json(state(s));
       }
       const match = path.match(/^\/api\/managed-visitors\/v1\/sessions\/([^/]+)\/(observations|actions|leave)$/);

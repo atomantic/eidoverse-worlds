@@ -31,7 +31,7 @@ try {
   socket.send(JSON.stringify({ type: 'join', hello: helloOf(), id: 'scratch-observer', world: 'managedscratch', token: 'scratch-door', spectate: true, replica: true }));
   await until('the observer joins the scratch world', () => messages.find((m) => m.type === 'snapshot') ?? (messages.find((m) => m.type === 'error') ? 'refused' : null), { ms: 8_000, step: 50 })
     .then((m) => assert.notEqual(m, 'refused', JSON.stringify(messages.filter((x) => x.type === 'error'))));
-  const response = await fetch(`${base}/admissions`, { method: 'POST', headers: { authorization: `Bearer ${token}` }, body: JSON.stringify({ version: 1, appId: 'test', individualId: 'one', individualSessionId: 'neural', worldId: 'managedscratch', body: 'fly-v1', ttlMs: 1000 }) });
+  const response = await fetch(`${base}/admissions`, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'X-Managed-Visitor-Deadline': String(Date.now() + 1000) }, body: JSON.stringify({ version: 1, appId: 'test', individualId: 'one', individualSessionId: 'neural', worldId: 'managedscratch', body: 'fly-v1', ttlMs: 1000 }) });
   assert.equal(response.status, 200); const admission = await response.json();
   const presence = await until('the observer sees the fly', () => messages.find((m) => m.type === 'managed-flies' && m.visitors.length), { ms: 3_000, step: 50 });
   assert.equal(presence.visitors[0].sessionId, admission.sessionId);
