@@ -16,7 +16,7 @@ upstream?" are different questions with different answers.
 ## Seeing what is different
 
 ```sh
-# What we have offered upstream and are waiting on (5 open PRs):
+# What we have offered upstream and are waiting on (3 open PRs: #165, #166, #171):
 git log --oneline main..contrib/pending-upstream --merges
 git diff main...contrib/pending-upstream
 
@@ -30,22 +30,35 @@ git fetch upstream && git log --oneline main..upstream/main
 
 The second of those is the important one. It is the whole answer to "what is
 PortOS-specific here", it is one commit per feature, and every commit on it is
-independently revertable. `docs/UPSTREAM-FLAGS.md` §6 explains the reasoning
-for the frame bridge specifically.
+independently revertable.
 
-## What lives on `portos` and why
+## What lives on `portos`, and why it isn't upstream or in PortOS
 
-| Commit | Why it is not going upstream |
-|---|---|
-| `residency` | PR #164, withdrawn on purpose: the schema assumes an instance, a coordinator mind and an agent roster. Hosting semantics, not a framework contract. |
-| `portos` frame bridge | One consumer — the PortOS iframe host. The vocabulary and the navigable routes are PortOS's own. |
-| `guest entry` | The visitor door exists for host-admitted PortOS travel. |
-| `net: leave a world` | Only a host that opens the next world needs the departure handshake. |
-| `/name` hosted rename | Stages identity in World Design, which is a PortOS surface. |
-| `interaction` teleport pod | Routes to the host instead of issuing a verb. |
-| `landscapes` | Horizon-scale worlds are ours; plausibly upstreamable later, never proposed. |
-| `models` loading phase | Small fix layered on PR #166; fold into that PR if it is still open. |
-| `probe-harness` | **Port candidate.** Small and generic — see UPSTREAM-FLAGS §6. |
+**The bar.** Ideally `portos` is empty. A commit stays here only when it is
+specific to PortOS *and* can't be done from PortOS's side. Anything generic goes
+upstream as a PR; anything PortOS can do as an ordinary client of the world (the
+authority's requests, MCPL, the HTTP routes) belongs in PortOS. Every row says
+which, and the "next step" column is the debt.
+
+| Commit | What it does | Verdict | Why | Next step |
+|---|---|---|---|---|
+| `docs` (this file, deploy script) | Branch topology; deploy follows `portos`. | **Keep** | Fork infrastructure, nothing to offer. | — |
+| `portos` frame bridge | The iframe handshake with the PortOS host: an operator-set exact parent origin (`EMBED_PARENT_ORIGIN`), `GET /embed-config`, `/version` capabilities, "Open in PortOS" / "teleport as guest" on the use prompt for things carrying `portos/link`. | **Keep** | One consumer, and its vocabulary (`portos:connect`, `eidoverse:navigate`, PortOS's routes) is PortOS's own. It is dormant by default (no `EMBED_PARENT_ORIGIN`: answers nobody), writes nothing to the log and claims no lease. | If upstream ever wants embedding, offer the *generic* shape: exact trusted origin, receiver before boot, a nonce a reload retires, outbound messages naming only scene entities and host-rechecked routes. The PortOS names stay here. |
+| `net: leave a world` | The client leaves a world cleanly (answers in-flight requests, cancels redials) before the host navigates to the next. | **Keep, with the bridge** | Only an embedding host swaps worlds under a live page. | Goes upstream with the generic embedding shape, if that ever happens. |
+| `/name` hosted rename | Inside a PortOS session, `/name` hands off to PortOS's World Design. | **Keep, with the bridge** | Identity is staged in a PortOS surface; standalone it behaves as upstream. | Could be folded into the bridge commit. |
+| `interaction` teleport pod | Now only a hand-test rig (`tools/interaction-preview.ts`) and docs: the pod's routing moved into the bridge on the port. | **Weak** | No runtime code left; it's a test rig for the bridge. | Fold into the bridge commit, or drop. |
+| `guest entry` | `?guest=1` makes a join anonymous (ignores the browser's sign-in, agent tokens, TRUST_NAMES), and admits it only where the owner set `@world` `portos/guests {admit: true}`. | **Revisit** | The anonymous-entry half is generic (a visitor choosing to arrive without their account) and is only ever a *reduction* in authority. The opt-in half overlaps upstream's own `access` and `default-role.guests`. | Propose `?guest=1` upstream as "enter anonymously"; replace `portos/guests` with upstream's access settings; then this row is empty. |
+| managed visitors (3 commits) | A loopback-only, bearer-gated broker for PortOS-managed nonhumanoid (`fly-v1`) visitors: scoped leases, bounded deadlines, a separate presence packet, no log writes. | **Keep (experimental)** | Deliberately *not* world-agent rights or aid1 identities, so it can't ride MCPL; it serves one external system (fly-garden via PortOS). Disabled unless its two env vars are set. | If it matures past an experiment, propose "managed visitors" upstream as an operator feature. |
+| `residency` | A `portos/residency` record per resident (instance, mind, roster), its planter tool, a `GET /residency` evidence projection, and a `look()` line. | **Move to PortOS** | PR #164 was withdrawn because it's hosting semantics. But on this protocol the record is a namespaced component the engine already stores and shows without fork code; the planter is an ordinary authority client; the projection reads the log. None of it needs the engine. | Move `shared/residency.js`, the planter and the projection into PortOS (through MCPL / `world_history` / the routes), then drop the commit. |
+| `landscapes` | Colliders index horizon-scale meshes once instead of per cell; the fallback sky follows the camera at 10 km. | **Upstream** | Generic engine behaviour: any large world needs it, nothing PortOS-specific. | Open a PR. |
+| `probe-harness` | `launchBrowser({args})` adds a probe's own Chromium switches. | **Upstream** | Small and generic. | Open a PR. |
+| `tools: client-boot-check` | Walks the browser's module graph from `client/main.js` and fails on duplicate top-level bindings. | **Upstream** | Catches a break no test in `tools/` can see (nothing imports `main.js`); generic. | Open a PR. |
+
+The `models` loading-phase fix that used to live here is part of PR #166 now. The
+port from the first protocol to this one (2026-11-13) rebuilt every override above on
+this protocol's shapes; each commit's body says what changed. Names PortOS writes:
+`portos/link` (was `portos`), `portos/residency` (was `residency`, and a
+descriptor's `marker.lib` is now `marker.model`), `portos/guests` (new).
 
 ## Syncing upstream
 
@@ -55,8 +68,7 @@ git checkout main && git merge --ff-only upstream/main && git push origin main
 
 # Rebuild the contribution stack from whatever is still open:
 git checkout -B contrib/pending-upstream main
-for b in fix/explicit-ground-sit fix/object-loading fix/particle-parts \
-         fix/object-labels codex/upstream-gamepad; do
+for b in fix/explicit-ground-sit fix/object-loading codex/upstream-gamepad; do
   git merge --no-edit -m "Merge contribution branch $b (open upstream PR)" "origin/$b"
 done
 
@@ -68,5 +80,7 @@ Drop a branch from that loop as soon as its PR merges — the commits arrive
 through `main` instead, and re-merging them only manufactures conflicts.
 
 `git config rerere.enabled true` is worth setting: the same handful of
-conflicts (client/main.js system registration, server/config.ts exports,
-client/lib/objectlabels.js) recur on every sync, and rerere replays them.
+conflicts (client/main.js system registration, server/config.ts exports, and the
+suite rows in tools/protocol/suites.ts) recur on every sync, and rerere replays them.
+docs/GATE-MANIFEST.md is generated: on a conflict take either side and regenerate it
+(`bun tools/protocol/run.ts --manifest` replaces its generated block; `--check-manifest` confirms).
