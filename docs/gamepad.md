@@ -96,3 +96,35 @@ An Edge smoke test of this upstream adaptation drove the real controller and
 avatar with simulated standard-pad input: movement, camera rotation, jump,
 disconnect clearing, and exactly one server-logged `use` across 120 held polls
 passed, with no page JavaScript errors.
+
+## Fork-only: gamepad under the PortOS frame
+
+Carried on `portos`, not offered upstream (docs/FORK.md, docs/portos-frame.md).
+
+PortOS retains destination selection, guest admission, and the departure
+handshake. The pad's X / □ is the same contextual action as E or a tap: the use
+prompt (`client/lib/useprompt.js`), which for a thing carrying `portos/link`
+only requests the already-validated host route — no travel URL or credential is
+ever accepted by the input layer. PortOS's main Eidoverse iframe already
+declares `gamepad`; its guest iframe must also delegate it for cross-origin
+guest worlds (host-side work, outside this repository).
+
+Fork-only suites (in the gate): `portos-frame`, `portos-frame-dom`,
+`departure`, `portos-rename`, `guest-entry`.
+
+For physical acceptance under the frame, run `bun tools/interaction-preview.ts`.
+It founds two disposable worlds in a temp directory, serves them on loopback
+port 8993 with a stand-in parent on 8994 speaking the frame contract with
+`allow="gamepad"`, and touches no installed world (it stops before writing
+anything if 8993 is already taken; `bun tools/interaction-preview-test.ts`
+checks that). Open the printed parent URL, then exercise movement, look, jump,
+and held use at the pod; the parent must report that the source departed
+before joining the destination. Opened directly on 8993 (no host session), the
+same pod offers an ordinary logged `use`. This fixture exercises the PortOS
+frame contract, not a deployed PortOS host.
+
+Physical acceptance on Windows, 2026-09-07 (the old-protocol build): Edge exposed
+`Xbox 360 Controller (XInput STANDARD GAMEPAD)` with standard mapping. The
+frame reported `PASS: departed source, entered destination, one human world`,
+the source observer confirmed departure, and no page JavaScript errors
+occurred. Not yet repeated on the current protocol.
