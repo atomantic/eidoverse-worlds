@@ -1,3 +1,7 @@
+// FIRST, and side-effecting (fork-only, docs/portos-frame.md): an embedding host posts portos:connect on the iframe's
+// load event, which can land before core.js has a renderer. This module imports nothing heavy so its receiver is
+// installed by then; a connect that still beats it is held until configuration resolves.
+import './lib/portosframe.js';
 // the water level seen from under it (#254): fog, the background, Snell's window (watervolumes.js); authored water volumes,
 // air boxes and environments (#248) wait for their components to be registered (PROTOCOL §4)
 import { updateWater, updateWaterView, setWaterObjects, setWaterClock, setSkyHider, waterDebug, applyEnvLight } from './lib/watervolumes.js';

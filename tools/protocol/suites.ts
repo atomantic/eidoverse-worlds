@@ -86,6 +86,8 @@ export const SUITES: [string, string, number][] = [ // name, file, tail lines to
   ["input-dom", "../input-dom-test.ts", 1], // PR #171: the browser's input lifetime: blur/hidden clear held input, typing and overlays block, a missing Gamepad API falls back
   ["limp-input", "../limp-input-test.ts", 1], // PR #171 review: a held key can't defeat a knock-down (neutral latch), stick drift never tips you off a seat
   ["escape-priority", "../escape-priority-test.ts", 1], // PR #171 review: one press, one action: editor before cancel, photo mode before the seat, a closed menu is all a press did; E vs climb
+  ["portos-frame", "../portos-frame-test.ts", 1], // fork-only (docs/portos-frame.md): frame-contract V1 policy: capabilities, routes, nonces, origins, the message boundary
+  ["portos-frame-dom", "../portos-frame-dom-test.ts", 1], // fork-only: the real frame receiver and use prompt: delayed trust, navigation, teleport, stale messages, departure
   ["latestread", "../latestread-test.ts", 1], // the panels' paced re-read and the History retry's back-off (latestread.js, backoff.js); it existed, but no lane ran it
   ["chat-mention-insert", "../chat-mention-insert-test.ts", 1], // #313 review: Mention and a name click put a space before `@name ` after a word, through chat.js itself
   ["chat-mention", "../chat-mention-test.mjs", 1], // #232: a chat name ends where the door's does (`cairn` is not inside `cairn-bridge`)

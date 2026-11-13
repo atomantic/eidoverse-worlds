@@ -7,8 +7,27 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { totalmem } from "node:os";
+// The browser applies this same rule to the value it is handed back, so the
+// two ends cannot drift into disagreeing about what an origin is.
+import { readFrameOrigin } from "../shared/portosframe.js";
 
 export const PORT = Number(process.env.PORT ?? 8940);
+// Fork-only (docs/portos-frame.md): the ONE origin allowed to drive the browser's
+// frame bridge. Empty = dormant: an arbitrary opener, a referrer or a query
+// parameter is never an authorization boundary, so without this there is nobody
+// to trust. GET /embed-config discloses it to whoever loads the client, which is
+// the embedding host by construction — leave it unset on a public sequencer.
+export const EMBED_PARENT_ORIGIN = (() => {
+  const raw = process.env.EMBED_PARENT_ORIGIN ?? "";
+  if (!raw) return "";
+  // An exact origin only. A value carrying a path, a query or even a trailing
+  // slash is refused rather than repaired: the browser compares with ===, so a
+  // repaired value would be a silent mismatch at handshake time.
+  const origin = readFrameOrigin(raw);
+  if (origin) return origin;
+  console.log(`  ⚠ EMBED_PARENT_ORIGIN is not an exact http(s) origin — the frame bridge stays OFF: ${raw}`);
+  return "";
+})();
 /** Where the server listens. Default every interface, as always; HOST=127.0.0.1 keeps a test world on this machine
  *  only (research 44: R's first world is served locally, and exposed on the tailnet separately, after a check). */
 export const HOST = process.env.HOST ?? "0.0.0.0";
