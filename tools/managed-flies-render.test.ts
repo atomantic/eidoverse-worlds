@@ -1,0 +1,20 @@
+import { test, expect, mock } from 'bun:test';
+import * as THREE from '../client/node_modules/three/build/three.module.js';
+const scene = new THREE.Scene();
+const handlers = new Map();
+mock.module('../client/lib/core.js', () => ({ THREE, scene }));
+mock.module('../client/lib/base.js', () => ({ bus: { on: (name: string, fn: Function) => handlers.set(name, fn) } }));
+const { updateManagedFlies } = await import('../client/lib/managed-flies.js');
+test('observer projection creates an original six-leg fly, updates pose and removes expired/disconnected presence', () => {
+  const visitor = { sessionId: 'lease', individualId: 'fly-one', body: 'fly-v1', status: 'paused', expiresAt: 10000, pose: { x: 1, z: -1, yaw: 0.5 } };
+  const packet = { version: 1, visitors: [visitor], patch: { flowers: [] } };
+  handlers.get('managed-flies')(packet);
+  const fly = scene.children.find(c => c.name.startsWith('Managed fly'))!;
+  expect(fly).toBeDefined(); expect(fly.position.toArray()).toEqual([1, 0.3, -1]);
+  expect(fly.children.filter(c => (c as any).geometry.type === 'CylinderGeometry')).toHaveLength(6);
+  handlers.get('managed-flies')({ ...packet, visitors: [{ ...visitor, pose: { x: 0, z: 0, yaw: 0 } }] });
+  expect(fly.position.toArray()).toEqual([0, 0.3, 0]);
+  handlers.get('managed-flies')({ ...packet, visitors: [] }); expect(scene.children).toHaveLength(0);
+  handlers.get('managed-flies')(packet); updateManagedFlies(10000); expect(scene.children).toHaveLength(0);
+  handlers.get('managed-flies')(packet); handlers.get('net')({ status: 'retrying' }); expect(scene.children).toHaveLength(0);
+});

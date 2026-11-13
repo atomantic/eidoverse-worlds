@@ -256,157 +256,158 @@ time.
 | 84 | portos-frame-dom | main | `tools/portos-frame-dom-test.ts` | bun | ? | 300 s |
 | 85 | departure | main | `tools/departure-test.ts` | bun | ? | 300 s |
 | 86 | portos-rename | main | `tools/portos-rename-test.ts` | bun | ? | 300 s |
-| 87 | guest-entry | main | `tools/protocol/guest-entry-check.ts` | bun | ? | 300 s |
-| 88 | latestread | main | `tools/latestread-test.ts` | bun | ? | 300 s |
-| 89 | chat-mention-insert | main | `tools/chat-mention-insert-test.ts` | bun | ? | 300 s |
-| 90 | chat-mention | main | `tools/chat-mention-test.mjs` | bun | ? | 300 s |
-| 91 | csp | main | `tools/csp-test.ts` | bun | ? | 300 s |
-| 92 | build-gate | main | `tools/build-gate-test.ts` | bun | 0.3 s | 180 s |
-| 93 | capsule-recovery | main | `tools/capsule-recovery-test.mjs` | bun | 10 s | 180 s |
-| 94 | debug-tabs | main | `tools/debug-tabs-test.ts` | bun | 0.3 s | 180 s |
-| 95 | governor-xr | main | `tools/governor-xr-test.ts` | bun | 0.2 s | 180 s |
-| 96 | unknown-comp | main | `tools/unknown-comp-test.ts` | bun | 1.1 s | 180 s |
-| 97 | reach-order | main | `tools/reach-order-test.ts` | bun | 1.5 s | 180 s |
-| 98 | editcommit | main | `tools/editcommit-test.ts` | bun | 0.8 s | 180 s |
-| 99 | hierarchy-commit | main | `tools/hierarchy-commit-test.ts` | bun | 0.6 s | 180 s |
-| 100 | verbclasses | main | `tools/protocol/verbclasses-check.ts` | bun | 0 s | 180 s |
-| 101 | authority-layers | main | `tools/protocol/authority-layers-check.ts` | bun | 0 s | 180 s |
-| 102 | ids | main | `tools/protocol/ids-check.ts` | bun | 1.4 s | 180 s |
-| 103 | r8 | main | `tools/protocol/r8-check.ts` | bun | 0.9 s | 180 s |
-| 104 | r9 | main | `tools/protocol/r9-check.ts` | bun | 1.5 s | 180 s |
-| 105 | r10 | main | `tools/protocol/r10-check.ts` | bun | 1.7 s | 180 s |
-| 106 | r11 | main | `tools/protocol/r11-check.ts` | bun | 0.6 s | 180 s |
-| 107 | names | main | `tools/protocol/names-check.ts` | bun | 2.1 s | 180 s |
-| 108 | parity | main | `tools/protocol/parity-check.ts` | bun | 5.4 s | 180 s |
-| 109 | directory | main | `tools/protocol/directory-check.ts` | bun | 13 s | 180 s |
-| 110 | keyhints | main | `tools/keyhints-check.ts` | bun | 0 s | 180 s |
-| 111 | upgrade | main | `tools/protocol/upgrade-check.ts` | bun | 70 s | 350 s |
-| 112 | hello-refused | main | `tools/protocol/hello-refused-check.ts` | bun | ? | 300 s |
-| 113 | server | main | `tools/protocol/server-check.ts` | bun | 40 s | 200 s |
-| 114 | fork-reset | main | `tools/protocol/fork-reset-check.ts` | bun | 6 s | 180 s |
-| 115 | simckpt | main | `tools/protocol/simckpt-check.ts` | python3 + cryptography | ? | 300 s |
-| 116 | statecache | main | `tools/protocol/statecache-check.ts` | bun | ? | 300 s |
-| 117 | foldparity | main | `tools/protocol/foldparity-check.ts` | bun | ? | 300 s |
-| 118 | blockers-mutants | main | `tools/protocol/blockers-mutants.ts` | bun | 420 s | 2100 s |
-| 119 | scripts | main | `tools/protocol/scripts-check.ts` | bun | 48 s | 240 s |
-| 120 | scripting | main | `tools/protocol/scripting-check.ts` | bun | 2 s | 180 s |
-| 121 | grab | main | `tools/protocol/grab-check.ts` | bun | 3.8 s | 180 s |
-| 122 | shove | main | `tools/protocol/shove-check.ts` | bun | 2 s | 180 s |
-| 123 | shove-walker | main | `tools/shove-test.ts` | bun | 0.1 s | 180 s |
-| 124 | own-names | main | `tools/own-names-test.ts` | bun | 0.1 s | 180 s |
-| 125 | rand | main | `tools/rand-test.ts` | bun | 0.3 s | 180 s |
-| 126 | force | main | `tools/protocol/force-check.ts` | bun | ? | 300 s |
-| 127 | physconst | main | `tools/physconst-test.ts` | bun | ? | 300 s |
-| 128 | agentshove | main | `tools/protocol/agentshove-check.ts` | bun | 165 s | 825 s |
-| 129 | hands | main | `tools/protocol/hands-check.ts` | bun | 1.2 s | 180 s |
-| 130 | reset | main | `tools/protocol/reset-check.ts` | bun | 1.7 s | 180 s |
-| 131 | settle | main | `tools/protocol/settle-check.ts` | bun | 5.4 s | 180 s |
-| 132 | disabled | main | `tools/protocol/disabled-check.ts` | bun | 1.2 s | 180 s |
-| 133 | histdiff | main | `tools/protocol/history-diff-check.ts` | bun | 0.3 s | 180 s |
-| 134 | reachgate | main | `tools/protocol/reachgate-check.ts` | bun | 22 s | 180 s |
-| 135 | consent | main | `tools/protocol/consent-check.ts` | bun | 0 s | 180 s |
-| 136 | gates | main | `tools/protocol/gates-check.ts` | bun | 0.1 s | 180 s |
-| 137 | consent-client | main | `tools/consent-client-test.ts` | bun | 0.2 s | 180 s |
-| 138 | structure-collider | main | `tools/structure-collider-test.ts` | bun | ? | 300 s |
-| 139 | media-trust-tabs | main | `tools/media-trust-tabs-test.ts` | bun | 0.1 s | 180 s |
-| 140 | confirmcenter | main | `tools/confirmcenter-test.ts` | bun | 0.5 s | 180 s |
-| 141 | windows-guard | main | `tools/windows-guard-test.ts` | bun | 0.5 s | 180 s |
-| 142 | history-rows | main | `tools/protocol/history-rows-check.ts` | bun | 0.6 s | 180 s |
-| 143 | scale | main | `tools/protocol/scale-check.ts` | bun | 125 s | 625 s |
-| 144 | roles | main | `tools/protocol/roles-check.ts` | bun | 3.1 s | 180 s |
-| 145 | batch2 | main | `tools/protocol/batch2-check.ts` | bun | 1.9 s | 180 s |
-| 146 | describe-particles | main | `tools/protocol/describe-particles-check.ts` | bun | 1.1 s | 180 s |
-| 147 | build | main | `tools/protocol/build-check.ts` | bun | 1.5 s | 180 s |
-| 148 | counter | main | `tools/protocol/counter-check.ts` | bun | 2.2 s | 180 s |
-| 149 | shiplist | main | `tools/protocol/shiplist-check.ts` | bun | 1.7 s | 180 s |
-| 150 | agenttools | main | `tools/protocol/agenttools-check.ts` | bun | 20 s | 180 s |
-| 151 | presence | main | `tools/protocol/presence-check.ts` | bun | 10 s | 180 s |
-| 152 | modhole | main | `tools/protocol/modhole-check.ts` | bun | 0.1 s | 180 s |
-| 153 | pretrans | main | `tools/protocol/pretrans-check.ts` | python3 | 2.8 s | 180 s |
-| 154 | soundclock | main | `tools/protocol/soundclock-check.ts` | bun | 0.2 s | 180 s |
-| 155 | sound | main | `tools/sound-test.ts` | bun | ? | 300 s |
-| 156 | sound-editor | main | `tools/sound-guard-test.ts` | bun | ? | 300 s |
-| 157 | skypanel | main | `tools/skypanel-state-test.ts` | bun | ? | 300 s |
-| 158 | physics-off | main | `tools/physics-off-test.ts` | bun | ? | 300 s |
-| 159 | predict-pending | main | `tools/predict-pending-test.ts` | bun | 0.5 s | 180 s |
-| 160 | eidomodel | main | `tools/protocol/eidomodel-check.ts` | bun | 0.7 s | 180 s |
-| 161 | alias | main | `mcpl/alias-test.ts` | bun | 0.4 s | 180 s |
-| 162 | tool-replies | main | `mcpl/tool-replies-test.ts` | bun | ? | 300 s |
-| 163 | agent-mesh-collision | main | `tools/agent-mesh-collision-test.ts` | bun | 92 s | 460 s |
-| 164 | navgrid | main | `tools/navgrid-test.ts` | bun | 64 s | 320 s |
-| 165 | navgrid-edge | main | `tools/navgrid-edge-test.ts` | bun | 0.6 s | 180 s |
-| 166 | places | main | `tools/places-test.ts` | bun | 130 s | 650 s |
-| 167 | places-scale | main | `tools/places-scale-test.ts` | bun | 6.3 s | 180 s |
-| 168 | storey-walk | main | `mcpl/storey-walk-test.ts` | bun | 1.5 s | 180 s |
-| 169 | door-unit | main | `mcpl/door-unit-test.ts` | bun | ? | 300 s |
-| 170 | effective-mcpl | main | `mcpl/effective-test.ts` | bun | ? | 300 s |
-| 171 | effective | main | `tools/effective-test.ts` | bun | ? | 300 s |
-| 172 | stretched-support | main | `mcpl/stretched-support-test.ts` | bun | ? | 300 s |
-| 173 | stretched-places | main | `mcpl/stretched-places-test.ts` | bun | ? | 300 s |
-| 174 | door-body | main | `mcpl/door-body-test.ts` | bun | ? | 300 s |
-| 175 | shape-attach | main | `tools/shape-attach-test.ts` | bun | 0.7 s | 180 s |
-| 176 | shape-physics | main | `tools/shape-physics-test.ts` | bun | 0.7 s | 180 s |
-| 177 | shape-import | main | `tools/shape-import-test.ts` | bun | 0.4 s | 180 s |
-| 178 | buildcheck | main | `tools/buildcheck-test.ts` | bun | 18 s | 180 s |
-| 179 | buildcheck-queue | main | `tools/buildcheck-queue-test.ts` | bun | 7.4 s | 180 s |
-| 180 | buildcheck-route | main | `tools/buildcheck-route-test.ts` | bun | 22 s | 180 s |
-| 181 | flight-exit | main | `tools/flight-exit-test.ts` | bun | 3 s | 180 s |
-| 182 | door-is-error | main | `tools/door-is-error-test.ts` | bun | 280 s | 1400 s |
-| 183 | door-wording | main | `tools/door-wording-test.ts` | bun | ? | 300 s |
-| 184 | consent-replay | main | `tools/consent-replay-test.ts` | bun | ? | 300 s |
-| 185 | history-request | main | `tools/history-request-test.ts` | bun | 0.3 s | 180 s |
-| 186 | wing-fold-presence | main | `tools/wing-fold-presence-test.ts` | bun | 0.3 s | 180 s |
-| 187 | skystamp | main | `tools/skystamp-test.ts` | bun | 0.5 s | 180 s |
-| 188 | grant-command | main | `tools/grant-command-test.ts` | bun | 0.3 s | 180 s |
-| 189 | environment-realizer | main | `tools/environment-realizer-test.ts` | bun | 0.3 s | 180 s |
-| 190 | grant-until | main | `tools/grant-until-test.ts` | bun | 1 s | 180 s |
-| 191 | lite-graph | main | `tools/lite-graph-test.ts` | bun | 1 s | 180 s |
-| 192 | say-live | main | `tools/say-live-test.ts` | bun | 1 s | 180 s |
-| 193 | presence-actor | main | `tools/presence-actor-test.ts` | bun | 1 s | 180 s |
-| 194 | first-name-account | main | `tools/first-name-account-test.ts` | bun | 1 s | 180 s |
-| 195 | retired-commands | main | `tools/retired-commands-test.ts` | bun | 1 s | 180 s |
-| 196 | animnames-retry | main | `tools/animnames-retry-test.ts` | bun | 2.5 s | 180 s |
-| 197 | panels | main | `tools/panels-test.ts` | bun | 1 s | 180 s |
-| 198 | surface-hold | main | `tools/surface-hold-test.ts` | bun | 19 s | 180 s |
-| 199 | particles | main | `tools/particles-test.ts` | bun | 1 s | 180 s |
-| 200 | shadow-fade | main | `tools/shadow-fade-test.mjs` | bun | 1 s | 180 s |
-| 201 | frames-layout | main | `tools/frames-layout-test.ts` | bun | 1 s | 180 s |
-| 202 | models-field | main | `tools/models-field-test.ts` | bun | 1 s | 180 s |
-| 203 | axes | main | `tools/axes-test.ts` | bun | ? | 300 s |
-| 204 | catalogue | main | `tools/protocol/catalogue-check.ts` | bun | ? | 300 s |
-| 205 | compose | main | `tools/compose-test.ts` | bun | ? | 300 s |
-| 206 | translate | main | `tools/protocol/translate-check.ts` | bun | 6 s | 180 s |
-| 207 | owners | main | `tools/protocol/owners-check.ts` | bun | ? | 300 s |
-| 208 | setup | main | `tools/protocol/setup-check.ts` | bun | 3 s | 180 s |
-| 209 | importer | main | `tools/protocol/importer-check.ts` | bun | 1.2 s | 180 s |
-| 210 | eidosim-v1 | main | `tools/protocol/import-v1/eidosim-v1-test.ts` | bun | 0.2 s | 180 s |
-| 211 | channelbox | main | `tools/channelbox-test.ts` | bun | ? | 300 s |
-| 212 | last-world | main | `tools/last-world-test.ts` | bun | 0.6 s | 180 s |
-| 213 | event-wire | main | `tools/event-wire-test.ts` | bun | 0.1 s | 180 s |
-| 214 | killz-slumped | main | `tools/killz-slumped-test.ts` | bun | 32 s | 180 s |
-| 215 | consent-scripts-list | main | `tools/consent-scripts-list-test.ts` | bun | 2 s | 180 s |
-| 216 | custody-save | main | `tools/custody-save-test.ts` | bun | 0.1 s | 180 s |
-| 217 | replica-freeze | main | `tools/replica-freeze-test.ts` | bun | ? | 300 s |
-| 218 | briefing | main | `tools/briefing-test.ts` | bun | ? | 300 s |
-| 219 | door-frame | main | `tools/door-frame-test.ts` | bun | ? | 300 s |
-| 220 | client-parse | main | `tools/protocol/client-parse-check.ts` | bun | ? | 300 s |
-| 221 | level-dive | browser | `tools/water/level-dive-check.ts` | Chromium | ? | 300 s |
-| 222 | water-cross | browser | `tools/water/crossing-pipelines-check.ts` | Chromium | 60 s | 300 s |
-| 223 | toast-group | browser | `tools/protocol/toast-group-check.ts` | Chromium | ? | 300 s |
-| 224 | browser | browser | `tools/protocol/browser-check.ts` | Chromium | 1.5 s | 180 s |
-| 225 | client | browser | `tools/protocol/client-check.ts` | Chromium | 60 s | 300 s |
-| 226 | refusedjoin | browser | `tools/protocol/refusedjoin-check.ts` | Chromium | 150 s | 750 s |
-| 227 | client-b2 | browser | `tools/protocol/batch2-probe.ts` | Chromium | 19 s | 180 s |
-| 228 | access-panel | browser | `tools/protocol/access-panel-probe.ts` | Chromium | ? | 300 s |
-| 229 | lock-strength | browser | `tools/lock-strength-test.ts` | Chromium | 10 s | 180 s |
-| 230 | swim-lists | browser | `tools/swim-lists-test.ts` | Chromium | 10 s | 180 s |
-| 231 | build-client | browser | `tools/protocol/build-probe.ts` | Chromium | 8.1 s | 180 s |
-| 232 | comps-parity | browser | `tools/comps-parity-test.ts` | Chromium | ? | 300 s |
-| 233 | shiplist-probe | browser | `tools/protocol/shiplist-probe.ts` | Chromium | 197 s | 985 s |
-| 234 | xss-probe | browser | `tools/protocol/xss-probe.ts` | Chromium | 15 s | 180 s |
-| 235 | party-probe | browser | `tools/protocol/party-probe.ts` | Chromium | 486 s | 2430 s |
-| 236 | colour-picker | browser | `tools/colour-picker-bench.ts` | Chromium | 8.1 s | 180 s |
-| 237 | client-tools | browser | `tools/run-client.ts --import-only --skip-suites --strict-env` | Chromium | 202 s | 1010 s |
+| 87 | managed-visitors | main | `tools/managed-visitors-scratch.ts` | bun | ? | 300 s |
+| 88 | guest-entry | main | `tools/protocol/guest-entry-check.ts` | bun | ? | 300 s |
+| 89 | latestread | main | `tools/latestread-test.ts` | bun | ? | 300 s |
+| 90 | chat-mention-insert | main | `tools/chat-mention-insert-test.ts` | bun | ? | 300 s |
+| 91 | chat-mention | main | `tools/chat-mention-test.mjs` | bun | ? | 300 s |
+| 92 | csp | main | `tools/csp-test.ts` | bun | ? | 300 s |
+| 93 | build-gate | main | `tools/build-gate-test.ts` | bun | 0.3 s | 180 s |
+| 94 | capsule-recovery | main | `tools/capsule-recovery-test.mjs` | bun | 10 s | 180 s |
+| 95 | debug-tabs | main | `tools/debug-tabs-test.ts` | bun | 0.3 s | 180 s |
+| 96 | governor-xr | main | `tools/governor-xr-test.ts` | bun | 0.2 s | 180 s |
+| 97 | unknown-comp | main | `tools/unknown-comp-test.ts` | bun | 1.1 s | 180 s |
+| 98 | reach-order | main | `tools/reach-order-test.ts` | bun | 1.5 s | 180 s |
+| 99 | editcommit | main | `tools/editcommit-test.ts` | bun | 0.8 s | 180 s |
+| 100 | hierarchy-commit | main | `tools/hierarchy-commit-test.ts` | bun | 0.6 s | 180 s |
+| 101 | verbclasses | main | `tools/protocol/verbclasses-check.ts` | bun | 0 s | 180 s |
+| 102 | authority-layers | main | `tools/protocol/authority-layers-check.ts` | bun | 0 s | 180 s |
+| 103 | ids | main | `tools/protocol/ids-check.ts` | bun | 1.4 s | 180 s |
+| 104 | r8 | main | `tools/protocol/r8-check.ts` | bun | 0.9 s | 180 s |
+| 105 | r9 | main | `tools/protocol/r9-check.ts` | bun | 1.5 s | 180 s |
+| 106 | r10 | main | `tools/protocol/r10-check.ts` | bun | 1.7 s | 180 s |
+| 107 | r11 | main | `tools/protocol/r11-check.ts` | bun | 0.6 s | 180 s |
+| 108 | names | main | `tools/protocol/names-check.ts` | bun | 2.1 s | 180 s |
+| 109 | parity | main | `tools/protocol/parity-check.ts` | bun | 5.4 s | 180 s |
+| 110 | directory | main | `tools/protocol/directory-check.ts` | bun | 13 s | 180 s |
+| 111 | keyhints | main | `tools/keyhints-check.ts` | bun | 0 s | 180 s |
+| 112 | upgrade | main | `tools/protocol/upgrade-check.ts` | bun | 70 s | 350 s |
+| 113 | hello-refused | main | `tools/protocol/hello-refused-check.ts` | bun | ? | 300 s |
+| 114 | server | main | `tools/protocol/server-check.ts` | bun | 40 s | 200 s |
+| 115 | fork-reset | main | `tools/protocol/fork-reset-check.ts` | bun | 6 s | 180 s |
+| 116 | simckpt | main | `tools/protocol/simckpt-check.ts` | python3 + cryptography | ? | 300 s |
+| 117 | statecache | main | `tools/protocol/statecache-check.ts` | bun | ? | 300 s |
+| 118 | foldparity | main | `tools/protocol/foldparity-check.ts` | bun | ? | 300 s |
+| 119 | blockers-mutants | main | `tools/protocol/blockers-mutants.ts` | bun | 420 s | 2100 s |
+| 120 | scripts | main | `tools/protocol/scripts-check.ts` | bun | 48 s | 240 s |
+| 121 | scripting | main | `tools/protocol/scripting-check.ts` | bun | 2 s | 180 s |
+| 122 | grab | main | `tools/protocol/grab-check.ts` | bun | 3.8 s | 180 s |
+| 123 | shove | main | `tools/protocol/shove-check.ts` | bun | 2 s | 180 s |
+| 124 | shove-walker | main | `tools/shove-test.ts` | bun | 0.1 s | 180 s |
+| 125 | own-names | main | `tools/own-names-test.ts` | bun | 0.1 s | 180 s |
+| 126 | rand | main | `tools/rand-test.ts` | bun | 0.3 s | 180 s |
+| 127 | force | main | `tools/protocol/force-check.ts` | bun | ? | 300 s |
+| 128 | physconst | main | `tools/physconst-test.ts` | bun | ? | 300 s |
+| 129 | agentshove | main | `tools/protocol/agentshove-check.ts` | bun | 165 s | 825 s |
+| 130 | hands | main | `tools/protocol/hands-check.ts` | bun | 1.2 s | 180 s |
+| 131 | reset | main | `tools/protocol/reset-check.ts` | bun | 1.7 s | 180 s |
+| 132 | settle | main | `tools/protocol/settle-check.ts` | bun | 5.4 s | 180 s |
+| 133 | disabled | main | `tools/protocol/disabled-check.ts` | bun | 1.2 s | 180 s |
+| 134 | histdiff | main | `tools/protocol/history-diff-check.ts` | bun | 0.3 s | 180 s |
+| 135 | reachgate | main | `tools/protocol/reachgate-check.ts` | bun | 22 s | 180 s |
+| 136 | consent | main | `tools/protocol/consent-check.ts` | bun | 0 s | 180 s |
+| 137 | gates | main | `tools/protocol/gates-check.ts` | bun | 0.1 s | 180 s |
+| 138 | consent-client | main | `tools/consent-client-test.ts` | bun | 0.2 s | 180 s |
+| 139 | structure-collider | main | `tools/structure-collider-test.ts` | bun | ? | 300 s |
+| 140 | media-trust-tabs | main | `tools/media-trust-tabs-test.ts` | bun | 0.1 s | 180 s |
+| 141 | confirmcenter | main | `tools/confirmcenter-test.ts` | bun | 0.5 s | 180 s |
+| 142 | windows-guard | main | `tools/windows-guard-test.ts` | bun | 0.5 s | 180 s |
+| 143 | history-rows | main | `tools/protocol/history-rows-check.ts` | bun | 0.6 s | 180 s |
+| 144 | scale | main | `tools/protocol/scale-check.ts` | bun | 125 s | 625 s |
+| 145 | roles | main | `tools/protocol/roles-check.ts` | bun | 3.1 s | 180 s |
+| 146 | batch2 | main | `tools/protocol/batch2-check.ts` | bun | 1.9 s | 180 s |
+| 147 | describe-particles | main | `tools/protocol/describe-particles-check.ts` | bun | 1.1 s | 180 s |
+| 148 | build | main | `tools/protocol/build-check.ts` | bun | 1.5 s | 180 s |
+| 149 | counter | main | `tools/protocol/counter-check.ts` | bun | 2.2 s | 180 s |
+| 150 | shiplist | main | `tools/protocol/shiplist-check.ts` | bun | 1.7 s | 180 s |
+| 151 | agenttools | main | `tools/protocol/agenttools-check.ts` | bun | 20 s | 180 s |
+| 152 | presence | main | `tools/protocol/presence-check.ts` | bun | 10 s | 180 s |
+| 153 | modhole | main | `tools/protocol/modhole-check.ts` | bun | 0.1 s | 180 s |
+| 154 | pretrans | main | `tools/protocol/pretrans-check.ts` | python3 | 2.8 s | 180 s |
+| 155 | soundclock | main | `tools/protocol/soundclock-check.ts` | bun | 0.2 s | 180 s |
+| 156 | sound | main | `tools/sound-test.ts` | bun | ? | 300 s |
+| 157 | sound-editor | main | `tools/sound-guard-test.ts` | bun | ? | 300 s |
+| 158 | skypanel | main | `tools/skypanel-state-test.ts` | bun | ? | 300 s |
+| 159 | physics-off | main | `tools/physics-off-test.ts` | bun | ? | 300 s |
+| 160 | predict-pending | main | `tools/predict-pending-test.ts` | bun | 0.5 s | 180 s |
+| 161 | eidomodel | main | `tools/protocol/eidomodel-check.ts` | bun | 0.7 s | 180 s |
+| 162 | alias | main | `mcpl/alias-test.ts` | bun | 0.4 s | 180 s |
+| 163 | tool-replies | main | `mcpl/tool-replies-test.ts` | bun | ? | 300 s |
+| 164 | agent-mesh-collision | main | `tools/agent-mesh-collision-test.ts` | bun | 92 s | 460 s |
+| 165 | navgrid | main | `tools/navgrid-test.ts` | bun | 64 s | 320 s |
+| 166 | navgrid-edge | main | `tools/navgrid-edge-test.ts` | bun | 0.6 s | 180 s |
+| 167 | places | main | `tools/places-test.ts` | bun | 130 s | 650 s |
+| 168 | places-scale | main | `tools/places-scale-test.ts` | bun | 6.3 s | 180 s |
+| 169 | storey-walk | main | `mcpl/storey-walk-test.ts` | bun | 1.5 s | 180 s |
+| 170 | door-unit | main | `mcpl/door-unit-test.ts` | bun | ? | 300 s |
+| 171 | effective-mcpl | main | `mcpl/effective-test.ts` | bun | ? | 300 s |
+| 172 | effective | main | `tools/effective-test.ts` | bun | ? | 300 s |
+| 173 | stretched-support | main | `mcpl/stretched-support-test.ts` | bun | ? | 300 s |
+| 174 | stretched-places | main | `mcpl/stretched-places-test.ts` | bun | ? | 300 s |
+| 175 | door-body | main | `mcpl/door-body-test.ts` | bun | ? | 300 s |
+| 176 | shape-attach | main | `tools/shape-attach-test.ts` | bun | 0.7 s | 180 s |
+| 177 | shape-physics | main | `tools/shape-physics-test.ts` | bun | 0.7 s | 180 s |
+| 178 | shape-import | main | `tools/shape-import-test.ts` | bun | 0.4 s | 180 s |
+| 179 | buildcheck | main | `tools/buildcheck-test.ts` | bun | 18 s | 180 s |
+| 180 | buildcheck-queue | main | `tools/buildcheck-queue-test.ts` | bun | 7.4 s | 180 s |
+| 181 | buildcheck-route | main | `tools/buildcheck-route-test.ts` | bun | 22 s | 180 s |
+| 182 | flight-exit | main | `tools/flight-exit-test.ts` | bun | 3 s | 180 s |
+| 183 | door-is-error | main | `tools/door-is-error-test.ts` | bun | 280 s | 1400 s |
+| 184 | door-wording | main | `tools/door-wording-test.ts` | bun | ? | 300 s |
+| 185 | consent-replay | main | `tools/consent-replay-test.ts` | bun | ? | 300 s |
+| 186 | history-request | main | `tools/history-request-test.ts` | bun | 0.3 s | 180 s |
+| 187 | wing-fold-presence | main | `tools/wing-fold-presence-test.ts` | bun | 0.3 s | 180 s |
+| 188 | skystamp | main | `tools/skystamp-test.ts` | bun | 0.5 s | 180 s |
+| 189 | grant-command | main | `tools/grant-command-test.ts` | bun | 0.3 s | 180 s |
+| 190 | environment-realizer | main | `tools/environment-realizer-test.ts` | bun | 0.3 s | 180 s |
+| 191 | grant-until | main | `tools/grant-until-test.ts` | bun | 1 s | 180 s |
+| 192 | lite-graph | main | `tools/lite-graph-test.ts` | bun | 1 s | 180 s |
+| 193 | say-live | main | `tools/say-live-test.ts` | bun | 1 s | 180 s |
+| 194 | presence-actor | main | `tools/presence-actor-test.ts` | bun | 1 s | 180 s |
+| 195 | first-name-account | main | `tools/first-name-account-test.ts` | bun | 1 s | 180 s |
+| 196 | retired-commands | main | `tools/retired-commands-test.ts` | bun | 1 s | 180 s |
+| 197 | animnames-retry | main | `tools/animnames-retry-test.ts` | bun | 2.5 s | 180 s |
+| 198 | panels | main | `tools/panels-test.ts` | bun | 1 s | 180 s |
+| 199 | surface-hold | main | `tools/surface-hold-test.ts` | bun | 19 s | 180 s |
+| 200 | particles | main | `tools/particles-test.ts` | bun | 1 s | 180 s |
+| 201 | shadow-fade | main | `tools/shadow-fade-test.mjs` | bun | 1 s | 180 s |
+| 202 | frames-layout | main | `tools/frames-layout-test.ts` | bun | 1 s | 180 s |
+| 203 | models-field | main | `tools/models-field-test.ts` | bun | 1 s | 180 s |
+| 204 | axes | main | `tools/axes-test.ts` | bun | ? | 300 s |
+| 205 | catalogue | main | `tools/protocol/catalogue-check.ts` | bun | ? | 300 s |
+| 206 | compose | main | `tools/compose-test.ts` | bun | ? | 300 s |
+| 207 | translate | main | `tools/protocol/translate-check.ts` | bun | 6 s | 180 s |
+| 208 | owners | main | `tools/protocol/owners-check.ts` | bun | ? | 300 s |
+| 209 | setup | main | `tools/protocol/setup-check.ts` | bun | 3 s | 180 s |
+| 210 | importer | main | `tools/protocol/importer-check.ts` | bun | 1.2 s | 180 s |
+| 211 | eidosim-v1 | main | `tools/protocol/import-v1/eidosim-v1-test.ts` | bun | 0.2 s | 180 s |
+| 212 | channelbox | main | `tools/channelbox-test.ts` | bun | ? | 300 s |
+| 213 | last-world | main | `tools/last-world-test.ts` | bun | 0.6 s | 180 s |
+| 214 | event-wire | main | `tools/event-wire-test.ts` | bun | 0.1 s | 180 s |
+| 215 | killz-slumped | main | `tools/killz-slumped-test.ts` | bun | 32 s | 180 s |
+| 216 | consent-scripts-list | main | `tools/consent-scripts-list-test.ts` | bun | 2 s | 180 s |
+| 217 | custody-save | main | `tools/custody-save-test.ts` | bun | 0.1 s | 180 s |
+| 218 | replica-freeze | main | `tools/replica-freeze-test.ts` | bun | ? | 300 s |
+| 219 | briefing | main | `tools/briefing-test.ts` | bun | ? | 300 s |
+| 220 | door-frame | main | `tools/door-frame-test.ts` | bun | ? | 300 s |
+| 221 | client-parse | main | `tools/protocol/client-parse-check.ts` | bun | ? | 300 s |
+| 222 | level-dive | browser | `tools/water/level-dive-check.ts` | Chromium | ? | 300 s |
+| 223 | water-cross | browser | `tools/water/crossing-pipelines-check.ts` | Chromium | 60 s | 300 s |
+| 224 | toast-group | browser | `tools/protocol/toast-group-check.ts` | Chromium | ? | 300 s |
+| 225 | browser | browser | `tools/protocol/browser-check.ts` | Chromium | 1.5 s | 180 s |
+| 226 | client | browser | `tools/protocol/client-check.ts` | Chromium | 60 s | 300 s |
+| 227 | refusedjoin | browser | `tools/protocol/refusedjoin-check.ts` | Chromium | 150 s | 750 s |
+| 228 | client-b2 | browser | `tools/protocol/batch2-probe.ts` | Chromium | 19 s | 180 s |
+| 229 | access-panel | browser | `tools/protocol/access-panel-probe.ts` | Chromium | ? | 300 s |
+| 230 | lock-strength | browser | `tools/lock-strength-test.ts` | Chromium | 10 s | 180 s |
+| 231 | swim-lists | browser | `tools/swim-lists-test.ts` | Chromium | 10 s | 180 s |
+| 232 | build-client | browser | `tools/protocol/build-probe.ts` | Chromium | 8.1 s | 180 s |
+| 233 | comps-parity | browser | `tools/comps-parity-test.ts` | Chromium | ? | 300 s |
+| 234 | shiplist-probe | browser | `tools/protocol/shiplist-probe.ts` | Chromium | 197 s | 985 s |
+| 235 | xss-probe | browser | `tools/protocol/xss-probe.ts` | Chromium | 15 s | 180 s |
+| 236 | party-probe | browser | `tools/protocol/party-probe.ts` | Chromium | 486 s | 2430 s |
+| 237 | colour-picker | browser | `tools/colour-picker-bench.ts` | Chromium | 8.1 s | 180 s |
+| 238 | client-tools | browser | `tools/run-client.ts --import-only --skip-suites --strict-env` | Chromium | 202 s | 1010 s |
 
-Lanes: core 18 suites (~79 s), main 202 (~1816 s), browser 17 (~1227 s); 237 suites in all.
+Lanes: core 18 suites (~79 s), main 203 (~1816 s), browser 17 (~1227 s); 238 suites in all.
 <!-- END GENERATED -->

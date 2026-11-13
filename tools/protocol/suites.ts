@@ -90,6 +90,7 @@ export const SUITES: [string, string, number][] = [ // name, file, tail lines to
   ["portos-frame-dom", "../portos-frame-dom-test.ts", 1], // fork-only: the real frame receiver and use prompt: delayed trust, navigation, teleport, stale messages, departure
   ["departure", "../departure-test.ts", 1], // fork-only: leaveWorld cancels the redial and an in-flight connect, answers pending requests, closes the socket
   ["portos-rename", "../portos-rename-test.ts", 1], // fork-only: /name stages a bounded identity draft only with a host that takes it; standalone and guest visits say why not
+  ["managed-visitors", "../managed-visitors-scratch.ts", 1], // fork-only (docs/managed-visitors.md): a real scratch sequencer: negotiation, paused admission, observer fly presence, leave (unit suites: bun test ./tools/managed-visitors-test.ts ./tools/managed-flies-render.test.ts)
   ["guest-entry", "guest-entry-check.ts", 1], // fork-only (docs/portos-guests.md): the host-admitted guest door is a reduction: door key, owner opt-in, anonymous, base rung with no permission
   ["latestread", "../latestread-test.ts", 1], // the panels' paced re-read and the History retry's back-off (latestread.js, backoff.js); it existed, but no lane ran it
   ["chat-mention-insert", "../chat-mention-insert-test.ts", 1], // #313 review: Mention and a name click put a space before `@name ` after a word, through chat.js itself

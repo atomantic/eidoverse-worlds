@@ -28,7 +28,8 @@ import { summarizeGlb } from "./geometry.ts";
 // The world itself (a log + the embodied plane) and the registry. The boot
 // sweep below stays HERE: waking scripted worlds with the server is boot
 // policy, not world mechanics.
-import { World, type Client, worlds, getWorld, wireSettledPose, wireRights, authorityNow } from "./world.ts";
+import { World, type Client, worlds, getWorld, wireSettledPose, wireRights, authorityNow, worldExists } from "./world.ts";
+import { createManagedVisitors } from "./managed-visitors.ts";   // fork-only (docs/managed-visitors.md)
 import { isWorldSaved } from "./worldlog.ts";
 import { bootNotice, noFoldRefusal, interruptedVisitorText } from "./oldworlds.ts";
 import { warmIndex } from "./worldindex.ts";
@@ -845,6 +846,17 @@ function buildSnapshot(w: World, c: Client) {
     };
 }
 
+// fork-only (docs/managed-visitors.md): an opt-in, separate, ephemeral presence lane for managed nonhumanoid visitors.
+// Never an ordinary participant, request, log entry, puppet or physics body. Off unless both env vars are set.
+const managedVisitors = createManagedVisitors({
+  token: process.env.PORTOS_EIDOVERSE_VISITOR_TOKEN ?? '',
+  allowedWorlds: (process.env.PORTOS_EIDOVERSE_VISITOR_WORLDS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+  exists: worldExists,
+});
+registerSystem({ name: 'managed-visitor-presence', everyMs: 100, fn: () => {
+  if (managedVisitors.enabled()) for (const [id, world] of worlds) world.broadcast(managedVisitors.publicState(id));
+} });
+
 const server = Bun.serve({
   port: PORT,
   hostname: HOST,
@@ -859,6 +871,9 @@ const server = Bun.serve({
   // the websocket block below leaves at Bun's default of 120s.
   idleTimeout: 255,
   async fetch(req, srv) {
+    // fork-only (docs/managed-visitors.md): the managed visitor host lane answers its own prefix, and nothing else
+    const managed = await managedVisitors.handle(req);
+    if (managed) return managed;
     // The whole HTTP surface is routes.ts's table (§15, 7c) — one row per
     // endpoint, first match wins, in exactly the order the if-chain had.
     // /ws upgrades inside its row: a successful upgrade returns no Response,
