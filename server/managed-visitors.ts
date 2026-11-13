@@ -33,11 +33,12 @@ export function createManagedVisitors({ token = '', allowedWorlds = [], exists =
         status: s.status, expiresAt: s.expiresAt, pose: { ...s.pose },
       })) };
   }
-  async function handle(req: Request): Promise<Response | null> {
+  async function handle(req: Request, remoteAddress = ''): Promise<Response | null> {
     const path = new URL(req.url).pathname;
     if (!path.startsWith(prefix)) return null;
     try {
       if (!enabled()) throw new Refusal('Managed visitors are not configured.', 503);
+      if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(remoteAddress) || req.headers.has('origin')) throw new Refusal('Managed visitors require a server-only loopback connection.', 403);
       const auth = req.headers.get('authorization') ?? '';
       const supplied = Buffer.from(auth), expected = Buffer.from(`Bearer ${token}`);
       if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) throw new Refusal('Dedicated broker credential required.', 401);
