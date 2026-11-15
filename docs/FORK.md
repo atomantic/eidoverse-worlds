@@ -16,7 +16,7 @@ upstream?" are different questions with different answers.
 ## Seeing what is different
 
 ```sh
-# What we have offered upstream and are waiting on (3 open PRs: #165, #166, #171):
+# What we have offered upstream and are waiting on (5 open PRs: #165, #166, #171, #334, #335):
 git log --oneline main..contrib/pending-upstream --merges
 git diff main...contrib/pending-upstream
 
@@ -48,17 +48,19 @@ which, and the "next step" column is the debt.
 | `/name` hosted rename | Inside a PortOS session, `/name` hands off to PortOS's World Design. | **Keep, with the bridge** | Identity is staged in a PortOS surface; standalone it behaves as upstream. | Could be folded into the bridge commit. |
 | `interaction` teleport pod | Now only a hand-test rig (`tools/interaction-preview.ts`) and docs: the pod's routing moved into the bridge on the port. | **Weak** | No runtime code left; it's a test rig for the bridge. | Fold into the bridge commit, or drop. |
 | `guest entry` | `?guest=1` makes a join anonymous (ignores the browser's sign-in, agent tokens, TRUST_NAMES), and admits it only where the owner set `@world` `portos/guests {admit: true}`. | **Revisit** | The anonymous-entry half is generic (a visitor choosing to arrive without their account) and is only ever a *reduction* in authority. The opt-in half overlaps upstream's own `access` and `default-role.guests`. | Propose `?guest=1` upstream as "enter anonymously"; replace `portos/guests` with upstream's access settings; then this row is empty. |
+| `version: largeWorldColliders` | `/version` reports `largeWorldColliders: 1`; PortOS places landscape assets only where it does. | **Keep, with the bridge** | The capability name is PortOS's; the engine half (colliders for horizon-scale meshes) is upstream PR #334. | Fold into the bridge commit on a quiet sync. |
 | managed visitors (3 commits) | A loopback-only, bearer-gated broker for PortOS-managed nonhumanoid (`fly-v1`) visitors: scoped leases, bounded deadlines, a separate presence packet, no log writes. | **Keep (experimental)** | Deliberately *not* world-agent rights or aid1 identities, so it can't ride MCPL; it serves one external system (fly-garden via PortOS). Disabled unless its two env vars are set. | If it matures past an experiment, propose "managed visitors" upstream as an operator feature. |
-| `residency` | A `portos/residency` record per resident (instance, mind, roster), its planter tool, a `GET /residency` evidence projection, and a `look()` line. | **Move to PortOS** | PR #164 was withdrawn because it's hosting semantics. But on this protocol the record is a namespaced component the engine already stores and shows without fork code; the planter is an ordinary authority client; the projection reads the log. None of it needs the engine. | Move `shared/residency.js`, the planter and the projection into PortOS (through MCPL / `world_history` / the routes), then drop the commit. |
-| `landscapes` | Colliders index horizon-scale meshes once instead of per cell; the fallback sky follows the camera at 10 km. | **Upstream** | Generic engine behaviour: any large world needs it, nothing PortOS-specific. | Open a PR. |
-| `probe-harness` | `launchBrowser({args})` adds a probe's own Chromium switches. | **Upstream** | Small and generic. | Open a PR. |
-| `tools: client-boot-check` | Walks the browser's module graph from `client/main.js` and fails on duplicate top-level bindings. | **Upstream** | Catches a break no test in `tools/` can see (nothing imports `main.js`); generic. | Open a PR. |
+
+Gone from here, and why (2026-11-15):
+
+- **residency** (`portos/residency`, its planter, `GET /residency`, a `look()` line): dropped, not moved. Nothing in PortOS plants a marker or reads `/residency` (its proxy only forwarded the path), so moving it would have moved dead code. A world that holds a `portos/residency` record keeps it: the engine stores and shows a namespaced component without reading it. The code is `9150fe22` (and the pre-port backup branch) if PortOS ever wants household markers; it would live in PortOS as an ordinary client (authority requests, `world_history`).
+- **landscapes** and **client-boot-check**: offered upstream as #334 and #335 (the boot check rewritten as the gate suite `client-parse`, on Bun's parser), so they arrive through `contrib/pending-upstream`.
+- **probe-harness** `launchBrowser({args})`: dropped. Nothing passed `args`.
 
 The `models` loading-phase fix that used to live here is part of PR #166 now. The
 port from the first protocol to this one (2026-11-13) rebuilt every override above on
 this protocol's shapes; each commit's body says what changed. Names PortOS writes:
-`portos/link` (was `portos`), `portos/residency` (was `residency`, and a
-descriptor's `marker.lib` is now `marker.model`), `portos/guests` (new).
+`portos/link` (was `portos`) and `portos/guests` (new).
 
 ## Syncing upstream
 
@@ -68,7 +70,7 @@ git checkout main && git merge --ff-only upstream/main && git push origin main
 
 # Rebuild the contribution stack from whatever is still open:
 git checkout -B contrib/pending-upstream main
-for b in fix/explicit-ground-sit fix/object-loading codex/upstream-gamepad; do
+for b in fix/explicit-ground-sit fix/object-loading codex/upstream-gamepad fix/landscape-colliders test/client-parse; do
   git merge --no-edit -m "Merge contribution branch $b (open upstream PR)" "origin/$b"
 done
 
