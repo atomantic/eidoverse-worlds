@@ -20,6 +20,8 @@ there and stays silent here.
 | `objectInteraction` | that action rides the contextual use prompt (E, the pad's X / □, a tap) |
 | `worldDeparture` | `portos:depart` closes the world connection before the host opens the next |
 | `identityRenameRequest` | `/name` stages a draft in the host's identity settings |
+
+`/version` also reports two runtime capabilities that are not part of the handshake: `guestEntry` (docs/portos-guests.md) and `largeWorldColliders`, which tells PortOS this engine gives a horizon-scale landscape mesh its collider (upstream PR #334), so it may place one.
 | `guestEntry` | `/?guest=1` is a host-admitted visitor door (docs/portos-guests.md) |
 
 **Port to the current protocol.** The old-protocol build also advertised `objectLabels` and `labelPreferences`:

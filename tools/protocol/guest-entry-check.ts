@@ -63,6 +63,7 @@ try {
   // G1
   const version = await (await fetch(`http://127.0.0.1:${srv.port}/version`)).json();
   ok(version.capabilities?.guestEntry === 1, "G1 /version advertises guestEntry", version.capabilities);
+  ok(version.capabilities?.largeWorldColliders === 1, "G1b /version advertises largeWorldColliders (PortOS gates its landscapes on it)", version.capabilities);
 
   const own = await sock(srv.port); const jo = await own.join("visit", "Ann");
   ok(jo.snapshot?.yourRights?.role === "owner", "(setup) Ann joins as the owner", [jo.errors, jo.snapshot?.yourRights]);

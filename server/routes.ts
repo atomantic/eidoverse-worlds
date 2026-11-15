@@ -886,7 +886,9 @@ const ROUTES: Route[] = [
         // Fork-only: independently versioned renderer capabilities
         // (docs/portos-frame.md). The frame handshake, not this report, is
         // what proves a loaded browser bundle speaks them.
-        capabilities: { ...FRAME_CAPABILITIES, guestEntry: 1 },   // guestEntry: docs/portos-guests.md
+        // largeWorldColliders: the engine takes a horizon-scale mesh (colliders.js `oversized`, upstream PR #334);
+        // PortOS places its landscape assets only where a runtime says so (eidoverseWorld.js reconciliation).
+        capabilities: { ...FRAME_CAPABILITIES, guestEntry: 1, largeWorldColliders: 1 },   // guestEntry: docs/portos-guests.md
         ...(process.env.WORLD_INSTANCE_NONCE ? { instance: process.env.WORLD_INSTANCE_NONCE } : {}),
       }),
       { headers: { "content-type": "application/json", "cache-control": "no-store" } }),
