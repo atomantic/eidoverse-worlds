@@ -384,23 +384,24 @@ time.
 | 212 | replica-freeze | main | `tools/replica-freeze-test.ts` | bun | ? | 300 s |
 | 213 | briefing | main | `tools/briefing-test.ts` | bun | ? | 300 s |
 | 214 | door-frame | main | `tools/door-frame-test.ts` | bun | ? | 300 s |
-| 215 | level-dive | browser | `tools/water/level-dive-check.ts` | Chromium | ? | 300 s |
-| 216 | water-cross | browser | `tools/water/crossing-pipelines-check.ts` | Chromium | 60 s | 300 s |
-| 217 | toast-group | browser | `tools/protocol/toast-group-check.ts` | Chromium | ? | 300 s |
-| 218 | browser | browser | `tools/protocol/browser-check.ts` | Chromium | 1.5 s | 180 s |
-| 219 | client | browser | `tools/protocol/client-check.ts` | Chromium | 60 s | 300 s |
-| 220 | refusedjoin | browser | `tools/protocol/refusedjoin-check.ts` | Chromium | 150 s | 750 s |
-| 221 | client-b2 | browser | `tools/protocol/batch2-probe.ts` | Chromium | 19 s | 180 s |
-| 222 | access-panel | browser | `tools/protocol/access-panel-probe.ts` | Chromium | ? | 300 s |
-| 223 | lock-strength | browser | `tools/lock-strength-test.ts` | Chromium | 10 s | 180 s |
-| 224 | swim-lists | browser | `tools/swim-lists-test.ts` | Chromium | 10 s | 180 s |
-| 225 | build-client | browser | `tools/protocol/build-probe.ts` | Chromium | 8.1 s | 180 s |
-| 226 | comps-parity | browser | `tools/comps-parity-test.ts` | Chromium | ? | 300 s |
-| 227 | shiplist-probe | browser | `tools/protocol/shiplist-probe.ts` | Chromium | 197 s | 985 s |
-| 228 | xss-probe | browser | `tools/protocol/xss-probe.ts` | Chromium | 15 s | 180 s |
-| 229 | party-probe | browser | `tools/protocol/party-probe.ts` | Chromium | 486 s | 2430 s |
-| 230 | colour-picker | browser | `tools/colour-picker-bench.ts` | Chromium | 8.1 s | 180 s |
-| 231 | client-tools | browser | `tools/run-client.ts --import-only --skip-suites --strict-env` | Chromium | 202 s | 1010 s |
+| 215 | client-parse | main | `tools/protocol/client-parse-check.ts` | bun | ? | 300 s |
+| 216 | level-dive | browser | `tools/water/level-dive-check.ts` | Chromium | ? | 300 s |
+| 217 | water-cross | browser | `tools/water/crossing-pipelines-check.ts` | Chromium | 60 s | 300 s |
+| 218 | toast-group | browser | `tools/protocol/toast-group-check.ts` | Chromium | ? | 300 s |
+| 219 | browser | browser | `tools/protocol/browser-check.ts` | Chromium | 1.5 s | 180 s |
+| 220 | client | browser | `tools/protocol/client-check.ts` | Chromium | 60 s | 300 s |
+| 221 | refusedjoin | browser | `tools/protocol/refusedjoin-check.ts` | Chromium | 150 s | 750 s |
+| 222 | client-b2 | browser | `tools/protocol/batch2-probe.ts` | Chromium | 19 s | 180 s |
+| 223 | access-panel | browser | `tools/protocol/access-panel-probe.ts` | Chromium | ? | 300 s |
+| 224 | lock-strength | browser | `tools/lock-strength-test.ts` | Chromium | 10 s | 180 s |
+| 225 | swim-lists | browser | `tools/swim-lists-test.ts` | Chromium | 10 s | 180 s |
+| 226 | build-client | browser | `tools/protocol/build-probe.ts` | Chromium | 8.1 s | 180 s |
+| 227 | comps-parity | browser | `tools/comps-parity-test.ts` | Chromium | ? | 300 s |
+| 228 | shiplist-probe | browser | `tools/protocol/shiplist-probe.ts` | Chromium | 197 s | 985 s |
+| 229 | xss-probe | browser | `tools/protocol/xss-probe.ts` | Chromium | 15 s | 180 s |
+| 230 | party-probe | browser | `tools/protocol/party-probe.ts` | Chromium | 486 s | 2430 s |
+| 231 | colour-picker | browser | `tools/colour-picker-bench.ts` | Chromium | 8.1 s | 180 s |
+| 232 | client-tools | browser | `tools/run-client.ts --import-only --skip-suites --strict-env` | Chromium | 202 s | 1010 s |
 
-Lanes: core 18 suites (~79 s), main 196 (~1816 s), browser 17 (~1227 s); 231 suites in all.
+Lanes: core 18 suites (~79 s), main 197 (~1816 s), browser 17 (~1227 s); 232 suites in all.
 <!-- END GENERATED -->
