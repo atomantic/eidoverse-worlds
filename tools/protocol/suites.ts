@@ -82,6 +82,10 @@ export const SUITES: [string, string, number][] = [ // name, file, tail lines to
   ["helm-leave", "../helm-leave-test.ts", 1], // review of PR #260 (vehicles.js:26): getting up from a helm lets its hull go: its relayed moves show, a later seat drives on from where it is
   ["dismount-height", "../dismount-height-test.ts", 1], // review of PR #260 (localbody.js:151): standing up keeps the height I'm let go at (vacated.at, a socket exit, a leave clip's end)
   ["ground-sit", "../ground-sit-test.ts", 1], // PR #165: /sit ground (or here) sits where you stand: never a seat named like the words, off a seat first, kept by one that won't let go
+  ["input", "../input-test.ts", 1], // PR #171: keyboard, touch and pad normalised to one movement; edges, the neutral latch, the one move threshold (shared/input.js)
+  ["input-dom", "../input-dom-test.ts", 1], // PR #171: the browser's input lifetime: blur/hidden clear held input, typing and overlays block, a missing Gamepad API falls back
+  ["limp-input", "../limp-input-test.ts", 1], // PR #171 review: a held key can't defeat a knock-down (neutral latch), stick drift never tips you off a seat
+  ["escape-priority", "../escape-priority-test.ts", 1], // PR #171 review: one press, one action: editor before cancel, photo mode before the seat, a closed menu is all a press did; E vs climb
   ["latestread", "../latestread-test.ts", 1], // the panels' paced re-read and the History retry's back-off (latestread.js, backoff.js); it existed, but no lane ran it
   ["chat-mention-insert", "../chat-mention-insert-test.ts", 1], // #313 review: Mention and a name click put a space before `@name ` after a word, through chat.js itself
   ["chat-mention", "../chat-mention-test.mjs", 1], // #232: a chat name ends where the door's does (`cairn` is not inside `cairn-bridge`)
